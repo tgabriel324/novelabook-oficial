@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,33 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Cores personalizadas do NovelBook
+				novel: {
+					lilac: {
+						50: '#f3f0ff',
+						100: '#e9e3ff',
+						200: '#d4cbff',
+						300: '#b8a5ff',
+						400: '#9b87f5',
+						500: '#7e69ab',
+						600: '#6E59A5',
+						700: '#543f8c',
+						800: '#433573',
+						900: '#332c5c',
+					},
+					gold: {
+						50: '#fbf8ed',
+						100: '#f8efd0',
+						200: '#f2dfa0',
+						300: '#e9c763',
+						400: '#e0af35',
+						500: '#c49520',
+						600: '#a47518',
+						700: '#825617',
+						800: '#6c471a',
+						900: '#5c3c1a',
+					}
 				}
 			},
 			borderRadius: {
