@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import AdminSidebar from "@/components/navigation/AdminSidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Crown, Bell } from "lucide-react";
+import { Bell, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const AdminLayout = () => {
@@ -15,15 +15,12 @@ const AdminLayout = () => {
       <div className={`flex flex-col flex-1 ${!isMobile ? "md:ml-64" : ""}`}>
         <header className="sticky top-0 z-10 bg-card py-3 px-4 shadow-sm border-b">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold">Painel Administrativo</h1>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon">
-                <Bell size={18} />
-              </Button>
-              <Button variant="secondary" className="gap-1.5">
-                <Crown size={18} className="text-novel-gold-400" />
-                <span>Admin</span>
-              </Button>
+            <div className="flex items-center">
+              <Shield className="text-primary" size={24} />
+              <span className="ml-2 text-xl font-bold">NovelBook</span>
+            </div>
+            <div className="text-right">
+              <h1 className="text-xl font-bold text-primary">Painel Administrativo</h1>
             </div>
           </div>
         </header>

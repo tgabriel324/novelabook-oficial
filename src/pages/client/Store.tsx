@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Crown, Star } from "lucide-react";
+import { Search, Filter, Star } from "lucide-react";
 import { 
   Carousel, 
   CarouselContent, 
@@ -11,26 +11,31 @@ import {
   CarouselNext, 
   CarouselPrevious 
 } from "@/components/ui/carousel";
+import { toast } from "sonner";
 
 const Store = () => {
   const [activeFilter, setActiveFilter] = useState("Todos");
   
   const featuredNovels = [
-    { id: 1, title: "A Filha do Imperador", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+1", price: "R$ 19,90", tags: ["Premium"] },
-    { id: 2, title: "O Príncipe das Sombras", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+2", price: "R$ 15,90", tags: [] },
-    { id: 3, title: "Renascendo em Outro Mundo", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+3", price: "R$ 22,90", tags: ["Premium"] },
+    { id: 1, title: "A Filha do Imperador", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+1", price: "R$ 19,90" },
+    { id: 2, title: "O Príncipe das Sombras", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+2", price: "R$ 15,90" },
+    { id: 3, title: "Renascendo em Outro Mundo", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+3", price: "R$ 22,90" },
   ];
   
   const storeNovels = [
-    { id: 4, title: "O Cavaleiro da Torre", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+4", price: "R$ 12,90", tags: [], rating: 4.5 },
-    { id: 5, title: "Alquimista Noturno", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+5", price: "R$ 17,90", tags: [], rating: 4.8 },
-    { id: 6, title: "Segredos da Capital", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+6", price: "R$ 14,90", tags: ["Premium"], rating: 4.2 },
-    { id: 7, title: "Reinos em Guerra", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+7", price: "R$ 19,90", tags: [], rating: 4.6 },
-    { id: 8, title: "A Profecia Perdida", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+8", price: "R$ 20,90", tags: ["Premium"], rating: 4.9 },
-    { id: 9, title: "Espada do Destino", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+9", price: "R$ 16,90", tags: [], rating: 4.3 },
+    { id: 4, title: "O Cavaleiro da Torre", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+4", price: "R$ 12,90", rating: 4.5 },
+    { id: 5, title: "Alquimista Noturno", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+5", price: "R$ 17,90", rating: 4.8 },
+    { id: 6, title: "Segredos da Capital", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+6", price: "R$ 14,90", rating: 4.2 },
+    { id: 7, title: "Reinos em Guerra", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+7", price: "R$ 19,90", rating: 4.6 },
+    { id: 8, title: "A Profecia Perdida", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+8", price: "R$ 20,90", rating: 4.9 },
+    { id: 9, title: "Espada do Destino", cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+9", price: "R$ 16,90", rating: 4.3 },
   ];
 
-  const filters = ["Todos", "Romance", "Fantasia", "Aventura", "Mistério", "Premium"];
+  const filters = ["Todos", "Romance", "Fantasia", "Aventura", "Mistério"];
+
+  const handlePurchase = (title) => {
+    toast.success(`Novela "${title}" adicionada à sua biblioteca!`);
+  };
 
   return (
     <div className="container py-6">
@@ -56,16 +61,14 @@ const Store = () => {
             variant={activeFilter === filter ? "secondary" : "outline"}
             size="sm"
             onClick={() => setActiveFilter(filter)}
-            className={filter === "Premium" ? "border-novel-gold-400 text-novel-gold-400" : ""}
           >
-            {filter === "Premium" && <Crown size={14} className="mr-1" />}
             {filter}
           </Button>
         ))}
       </div>
 
       <section className="mb-10">
-        <h2 className="mb-4 text-xl font-semibold">Promoções</h2>
+        <h2 className="mb-4 text-xl font-semibold text-primary">Promoções</h2>
         <Carousel className="w-full">
           <CarouselContent>
             {featuredNovels.map((novel) => (
@@ -78,17 +81,11 @@ const Store = () => {
                         alt={novel.title}
                         className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                       />
-                      {novel.tags.includes("Premium") && (
-                        <div className="absolute top-2 right-2 bg-novel-gold-400 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center">
-                          <Crown size={12} className="mr-1" />
-                          Premium
-                        </div>
-                      )}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
                         <h3 className="font-semibold">{novel.title}</h3>
                         <div className="mt-2 flex items-center justify-between">
                           <span className="font-bold text-novel-gold-400">{novel.price}</span>
-                          <Button size="sm" variant="secondary">Comprar</Button>
+                          <Button size="sm" variant="secondary" onClick={() => handlePurchase(novel.title)}>Comprar</Button>
                         </div>
                       </div>
                     </div>
@@ -103,7 +100,7 @@ const Store = () => {
       </section>
 
       <section>
-        <h2 className="mb-4 text-xl font-semibold">Catálogo</h2>
+        <h2 className="mb-4 text-xl font-semibold text-primary">Catálogo</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {storeNovels.map((novel) => (
             <Card key={novel.id} className="overflow-hidden transition-transform hover:scale-105 duration-300">
@@ -114,12 +111,6 @@ const Store = () => {
                     alt={novel.title}
                     className="h-full w-full object-cover"
                   />
-                  {novel.tags.includes("Premium") && (
-                    <div className="absolute top-2 right-2 bg-novel-gold-400 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center">
-                      <Crown size={12} className="mr-1" />
-                      Premium
-                    </div>
-                  )}
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
                     <h3 className="font-semibold">{novel.title}</h3>
                     <div className="mt-1 flex items-center">
@@ -128,7 +119,7 @@ const Store = () => {
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <span className="font-bold text-novel-gold-400">{novel.price}</span>
-                      <Button size="sm" variant="secondary">Comprar</Button>
+                      <Button size="sm" variant="secondary" onClick={() => handlePurchase(novel.title)}>Comprar</Button>
                     </div>
                   </div>
                 </div>

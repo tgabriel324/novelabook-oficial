@@ -1,5 +1,5 @@
 
-import { Home, Book, ShoppingCart, User, Menu } from "lucide-react";
+import { Home, Book, ShoppingCart, User, MessageCircle, HelpCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -24,14 +24,14 @@ const BottomNav = () => {
       path: "/loja",
     },
     {
+      icon: MessageCircle,
+      label: "Comunidade",
+      path: "/comunidade",
+    },
+    {
       icon: User,
       label: "Perfil",
       path: "/perfil",
-    },
-    {
-      icon: Menu,
-      label: "Mais",
-      path: "/mais",
     },
   ];
 

@@ -28,7 +28,7 @@ const Library = () => {
       </div>
 
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Minhas Leituras</h2>
+        <h2 className="text-xl font-semibold text-primary">Minhas Leituras</h2>
         <Button variant="link" className="text-novel-gold-400 font-medium p-0">
           Ver Todas
         </Button>
@@ -61,7 +61,7 @@ const Library = () => {
       </div>
       
       <div className="mt-10 mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Recém Adquiridos</h2>
+        <h2 className="text-xl font-semibold text-primary">Recém Adquiridos</h2>
         <Button variant="link" className="text-novel-gold-400 font-medium p-0">
           Ver Todos
         </Button>

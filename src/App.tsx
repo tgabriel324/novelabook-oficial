@@ -17,6 +17,8 @@ import Library from "@/pages/client/Library";
 import Profile from "@/pages/client/Profile";
 import Store from "@/pages/client/Store";
 import Reader from "@/pages/client/Reader";
+import Community from "@/pages/client/Community";
+import Support from "@/pages/client/Support";
 
 // Auth Pages
 import Login from "@/pages/auth/Login";
@@ -48,7 +50,8 @@ const App = () => (
             <Route path="/biblioteca" element={<Library />} />
             <Route path="/loja" element={<Store />} />
             <Route path="/perfil" element={<Profile />} />
-            <Route path="/mais" element={<Navigate to="/perfil" />} /> {/* Placeholder */}
+            <Route path="/comunidade" element={<Community />} />
+            <Route path="/suporte" element={<Support />} />
           </Route>
 
           {/* Reader Route - Standalone without bottom navigation */}

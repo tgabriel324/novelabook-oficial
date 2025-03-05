@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, TrendingUp, Clock, Award, Sparkles } from "lucide-react";
+import { Search, TrendingUp, Award, Sparkles } from "lucide-react";
 
 const Discover = () => {
   const featuredNovels = [
@@ -39,7 +39,7 @@ const Discover = () => {
       <section className="mb-10">
         <div className="mb-4 flex items-center">
           <Sparkles className="mr-2 text-novel-gold-400" size={20} />
-          <h2 className="text-xl font-semibold">Destaques</h2>
+          <h2 className="text-xl font-semibold text-primary">Destaques</h2>
         </div>
         <Carousel className="w-full">
           <CarouselContent>
@@ -77,7 +77,7 @@ const Discover = () => {
       <section className="mb-10">
         <div className="mb-4 flex items-center">
           <TrendingUp className="mr-2 text-novel-gold-400" size={20} />
-          <h2 className="text-xl font-semibold">Em Alta</h2>
+          <h2 className="text-xl font-semibold text-primary">Em Alta</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {trendingNovels.map((novel) => (
@@ -109,7 +109,7 @@ const Discover = () => {
       <section>
         <div className="mb-4 flex items-center">
           <Award className="mr-2 text-novel-gold-400" size={20} />
-          <h2 className="text-xl font-semibold">Categorias</h2>
+          <h2 className="text-xl font-semibold text-primary">Categorias</h2>
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {["Romance", "Fantasia", "Ação", "Drama", "Mistério", "Aventura", "Histórico", "Ficção"].map((category, index) => (
