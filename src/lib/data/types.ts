@@ -34,6 +34,11 @@ export interface Novel {
   updatedAt: string;
   createdAt: string;
   chapters?: number;
+  // Adicionar as propriedades que faltam
+  reviewCount?: number;
+  releaseDate?: string;
+  totalChapters?: number;
+  completedChapters?: number;
 }
 
 export interface Chapter {
