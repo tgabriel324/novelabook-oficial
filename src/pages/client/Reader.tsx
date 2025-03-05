@@ -15,7 +15,7 @@ import {
   MessageSquare,
   BookmarkCheck
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -32,8 +32,11 @@ import { toast } from "sonner";
 import TelegramShareButton from "@/components/sharing/TelegramShareButton";
 import ReaderRecommendations from "@/components/recommendation/ReaderRecommendations";
 import { Novel } from "@/lib/data/types";
+import NovelSeoTags from "@/components/seo/NovelSeoTags";
 
 const Reader = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [fontSize, setFontSize] = useState(16);
   const [theme, setTheme] = useState("light");
   const [showSettings, setShowSettings] = useState(false);
@@ -43,11 +46,34 @@ const Reader = () => {
   const [noteTitle, setNoteTitle] = useState("");
   const [isOfflineAvailable, setIsOfflineAvailable] = useState(false);
   const [notes, setNotes] = useState<{id: string, title: string, content: string}[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = 5; // Mock data
+  
+  // Obter id do livro da URL se disponível
+  const params = new URLSearchParams(location.search);
+  const bookId = params.get('book') || "1";
   
   // Mock de dados para testes
-  const novelId = "1";
+  const novelId = bookId;
   const chapterTitle = "Capítulo 1: O Início";
   const novelTitle = "A Filha do Imperador";
+  
+  // Mock da novela para SEO
+  const mockNovel: Novel = { 
+    id: novelId, 
+    title: novelTitle, 
+    cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+1", 
+    price: 19.90,
+    author: { id: "a1", name: "Ana Silva" },
+    status: "published",
+    description: "Uma história épica sobre a filha de um imperador que precisa lutar pelo seu direito ao trono.",
+    categories: ["Fantasia", "Romance"],
+    tags: ["Realeza", "Política", "Intriga"],
+    reads: 12500,
+    purchases: 2300,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
   
   // Mock de novels para recomendações
   const mockNovels: Novel[] = [
@@ -191,8 +217,47 @@ const Reader = () => {
     }
   };
 
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+      window.scrollTo(0, 0);
+      toast.success(`Navegando para a página ${currentPage + 1}`);
+    } else {
+      toast.info("Você alcançou o final deste capítulo");
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      window.scrollTo(0, 0);
+      toast.success(`Navegando para a página ${currentPage - 1}`);
+    } else {
+      toast.info("Você já está na primeira página");
+    }
+  };
+
+  // Efeito para monitorar teclas de navegação
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        goToNextPage();
+      } else if (e.key === "ArrowLeft") {
+        goToPreviousPage();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [currentPage]);
+
   return (
     <div className={`min-h-screen ${theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-900"}`}>
+      {/* SEO Tags */}
+      <NovelSeoTags novel={mockNovel} />
+      
       <header className="sticky top-0 z-10 bg-card p-4 shadow-sm flex items-center justify-between">
         <div className="flex items-center">
           <Link to="/biblioteca">
@@ -305,15 +370,23 @@ const Reader = () => {
       </main>
       
       <footer className="sticky bottom-0 bg-card p-4 shadow-sm flex items-center justify-between">
-        <Button variant="outline">
+        <Button 
+          variant="outline"
+          onClick={goToPreviousPage}
+          disabled={currentPage <= 1}
+        >
           <ChevronLeft size={20} className="mr-2" />
           Anterior
         </Button>
         <div className="text-sm text-center">
           <span className="text-muted-foreground">Capítulo 1</span>
-          <div className="text-novel-gold-400 text-xs mt-1">Página 1 de 5</div>
+          <div className="text-novel-gold-400 text-xs mt-1">Página {currentPage} de {totalPages}</div>
         </div>
-        <Button variant="secondary">
+        <Button 
+          variant="secondary"
+          onClick={goToNextPage}
+          disabled={currentPage >= totalPages}
+        >
           Próximo
           <ChevronRight size={20} className="ml-2" />
         </Button>

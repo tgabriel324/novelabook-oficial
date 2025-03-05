@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthCheck from "@/components/layout/AuthCheck";
 import ClientLayout from "@/components/layout/ClientLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
+import SeoMetaTags from "@/components/seo/SeoMetaTags";
 
 // Admin Pages
 import Dashboard from "@/pages/admin/Dashboard";
@@ -22,6 +23,7 @@ import Store from "@/pages/client/Store";
 import Reader from "@/pages/client/Reader";
 import Community from "@/pages/client/Community";
 import Support from "@/pages/client/Support";
+import Documentation from "@/pages/client/Documentation";
 
 // Auth Pages
 import Login from "@/pages/auth/Login";
@@ -35,6 +37,9 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      {/* Metadados SEO padrão para todas as páginas */}
+      <SeoMetaTags />
+      
       <Toaster />
       <Sonner />
       <BrowserRouter>
@@ -55,6 +60,7 @@ const App = () => (
             <Route path="/perfil" element={<Profile />} />
             <Route path="/comunidade" element={<Community />} />
             <Route path="/suporte" element={<Support />} />
+            <Route path="/documentacao" element={<Documentation />} />
           </Route>
 
           {/* Reader Route - Standalone without bottom navigation */}
