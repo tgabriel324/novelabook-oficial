@@ -123,7 +123,7 @@ const AdminLayout = () => {
                           <div className="flex justify-between items-start">
                             <p className="font-medium">{notification.title}</p>
                             {!notification.read && (
-                              <Badge variant="primary" className="ml-2 h-2 w-2 p-0 rounded-full" />
+                              <Badge variant="secondary" className="ml-2 h-2 w-2 p-0 rounded-full" />
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground">{notification.description}</p>
