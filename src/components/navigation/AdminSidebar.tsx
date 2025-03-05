@@ -8,13 +8,17 @@ import {
   MessageSquare, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpenCheck,
+  Cpu,
+  Smartphone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const navItems = [
   {
@@ -49,10 +53,30 @@ const navItems = [
   },
 ];
 
+// Novos itens para análise e otimização
+const optimizationItems = [
+  {
+    icon: BookOpenCheck,
+    label: "Análise de Leitura",
+    path: "/admin/analytics/leitura",
+  },
+  {
+    icon: Cpu,
+    label: "Performance",
+    path: "/admin/performance",
+  },
+  {
+    icon: Smartphone,
+    label: "Compatibilidade",
+    path: "/admin/compatibilidade",
+  },
+];
+
 const AdminSidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const [expanded, setExpanded] = useState(true);
+  const [optimizationOpen, setOptimizationOpen] = useState(false);
   const isMobile = useIsMobile();
 
   const SidebarContent = () => (
@@ -87,6 +111,56 @@ const AdminSidebar = () => {
             {(expanded || isMobile) && <span className="ml-3">{item.label}</span>}
           </Link>
         ))}
+        
+        {/* Seção de otimização e análise */}
+        {(expanded || isMobile) ? (
+          <Collapsible 
+            open={optimizationOpen} 
+            onOpenChange={setOptimizationOpen}
+            className="mt-4"
+          >
+            <CollapsibleTrigger asChild>
+              <div className="flex items-center rounded-md px-3 py-2 hover:bg-accent cursor-pointer text-muted-foreground">
+                <BarChart size={20} className="shrink-0" />
+                <span className="ml-3 flex-1">Análise & Otimização</span>
+                <ChevronRight 
+                  size={16} 
+                  className={cn("transition-transform duration-200", 
+                    optimizationOpen && "transform rotate-90")} 
+                />
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pl-3">
+              {optimizationItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex items-center rounded-md px-3 py-2 mt-1 hover:bg-accent",
+                    currentPath === item.path ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  <item.icon size={18} className="shrink-0" />
+                  <span className="ml-3">{item.label}</span>
+                </Link>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        ) : (
+          // Versão compacta para sidebar recolhida
+          optimizationItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "flex items-center rounded-md px-3 py-2 hover:bg-accent",
+                currentPath === item.path ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+              )}
+            >
+              <item.icon size={20} className="shrink-0" />
+            </Link>
+          ))
+        )}
       </div>
     </div>
   );

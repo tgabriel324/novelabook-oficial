@@ -10,6 +10,9 @@ import AdminLayout from "@/components/layout/AdminLayout";
 
 // Admin Pages
 import Dashboard from "@/pages/admin/Dashboard";
+import ReadingAnalytics from "@/components/admin/ReadingAnalytics";
+import PerformanceOptimizer from "@/components/admin/PerformanceOptimizer";
+import CompatibilityTester from "@/components/admin/CompatibilityTester";
 
 // Client Pages
 import Discover from "@/pages/client/Discover";
@@ -73,6 +76,11 @@ const App = () => (
             <Route path="relatorios" element={<div>Relatórios</div>} /> {/* Placeholder */}
             <Route path="comunicacoes" element={<div>Comunicações</div>} /> {/* Placeholder */}
             <Route path="configuracoes" element={<div>Configurações</div>} /> {/* Placeholder */}
+            
+            {/* Novas rotas de análise */}
+            <Route path="analytics/leitura" element={<ReadingAnalytics />} />
+            <Route path="performance" element={<PerformanceOptimizer />} />
+            <Route path="compatibilidade" element={<CompatibilityTester />} />
           </Route>
 
           {/* Catch-all route */}
