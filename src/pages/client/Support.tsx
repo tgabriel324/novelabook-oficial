@@ -1,9 +1,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, HelpCircle, Mail, Phone, FileQuestion, AlertCircle } from "lucide-react";
+import { HelpCircle, Mail, Phone, FileQuestion, AlertCircle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
+import TelegramShareButton from "@/components/sharing/TelegramShareButton";
 
 const Support = () => {
   const handleContactTelegram = () => {
@@ -48,13 +49,13 @@ const Support = () => {
             Estamos aqui para ajudar! Entre em contato conosco por qualquer um dos canais abaixo ou consulte nossas perguntas frequentes.
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Button 
-              onClick={handleContactTelegram} 
-              className="bg-[#0088cc] hover:bg-[#0088cc]/90 gap-2"
+            <TelegramShareButton 
+              text="Preciso de ajuda com o NovelBook. Alguém pode me ajudar?"
+              url="https://novelbook.app/suporte"
+              onClick={handleContactTelegram}
             >
-              <MessageCircle size={18} />
               Suporte via Telegram
-            </Button>
+            </TelegramShareButton>
             <Button variant="outline" className="gap-2">
               <Mail size={18} />
               suporte@novelbook.com
@@ -84,6 +85,16 @@ const Support = () => {
               </AccordionItem>
             ))}
           </Accordion>
+          <div className="mt-6 flex justify-end">
+            <TelegramShareButton
+              text="Confira as perguntas frequentes do NovelBook"
+              url="https://novelbook.app/suporte"
+              variant="outline"
+              size="sm"
+            >
+              Compartilhar FAQs
+            </TelegramShareButton>
+          </div>
         </CardContent>
       </Card>
 
@@ -98,10 +109,15 @@ const Support = () => {
           <p className="mb-4">
             Encontrou um bug ou está enfrentando algum problema técnico? Nosso time de suporte técnico está pronto para ajudar.
           </p>
-          <Button onClick={handleContactTelegram} variant="secondary" className="w-full gap-2">
-            <MessageCircle size={18} />
+          <TelegramShareButton
+            text="Encontrei um problema no NovelBook que precisa ser resolvido."
+            url="https://novelbook.app/suporte"
+            onClick={handleContactTelegram}
+            className="w-full"
+            variant="secondary"
+          >
             Reportar no Telegram
-          </Button>
+          </TelegramShareButton>
           <div className="mt-4 p-3 border rounded-lg bg-muted/50">
             <h3 className="font-medium mb-1 flex items-center">
               <Phone size={16} className="mr-2" />

@@ -1,23 +1,26 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Users, Share2, Send, ExternalLink } from "lucide-react";
+import { Users, Share2, Send, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import TelegramShareButton from "@/components/sharing/TelegramShareButton";
+import { useState } from "react";
 
 const Community = () => {
+  const [selectedNovel, setSelectedNovel] = useState("A Filha do Imperador");
+  
   const handleJoinTelegram = () => {
     window.open("https://t.me/novelbook", "_blank");
     toast.success("Abrindo o Telegram");
   };
 
-  const handleShareNovel = () => {
-    // Simulate Telegram share functionality
-    const shareText = "Confira esta incrível novela no NovelBook: A Filha do Imperador";
-    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent("https://novelbook.app")}&text=${encodeURIComponent(shareText)}`;
-    window.open(telegramUrl, "_blank");
-    toast.success("Compartilhando no Telegram");
-  };
+  const popularNovels = [
+    "O Príncipe das Sombras", 
+    "Renascendo em Outro Mundo", 
+    "Segredos da Capital", 
+    "A Duquesa Rebelde"
+  ];
 
   return (
     <div className="container py-6">
@@ -33,13 +36,13 @@ const Community = () => {
             Junte-se à nossa comunidade de leitores e escritores no Telegram. Discuta suas novelas favoritas, receba recomendações e conheça outros entusiastas de novelas.
           </p>
           <div className="flex justify-center">
-            <Button 
-              onClick={handleJoinTelegram} 
-              className="bg-[#0088cc] hover:bg-[#0088cc]/90 mb-4 gap-2"
+            <TelegramShareButton 
+              text="Olá! Acabei de me juntar à comunidade NovelBook. Vamos discutir nossas novelas favoritas!"
+              onClick={handleJoinTelegram}
+              className="mb-4"
             >
-              <MessageCircle size={18} />
               Entrar no Grupo do Telegram
-            </Button>
+            </TelegramShareButton>
           </div>
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>Já temos mais de 1.200 membros ativos na comunidade!</p>
@@ -60,27 +63,29 @@ const Community = () => {
           </p>
           <div className="flex items-center gap-2 mb-4">
             <Input 
-              defaultValue="A Filha do Imperador" 
+              value={selectedNovel}
+              onChange={(e) => setSelectedNovel(e.target.value)}
               placeholder="Escolha uma novela para compartilhar"
-              readOnly
             />
-            <Button onClick={handleShareNovel} size="icon" variant="secondary">
+            <TelegramShareButton
+              text={`Confira esta incrível novela no NovelBook: ${selectedNovel}`}
+              size="icon"
+              variant="secondary"
+            >
               <Send size={18} />
-            </Button>
+            </TelegramShareButton>
           </div>
           <div className="border-t pt-4 mt-4">
             <h3 className="font-medium mb-2">Novelas Populares para Compartilhar</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-              {["O Príncipe das Sombras", "Renascendo em Outro Mundo", "Segredos da Capital", "A Duquesa Rebelde"].map(novel => (
+              {popularNovels.map(novel => (
                 <Button 
                   key={novel} 
                   variant="outline" 
                   className="justify-between"
                   onClick={() => {
-                    const shareText = `Confira esta incrível novela no NovelBook: ${novel}`;
-                    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent("https://novelbook.app")}&text=${encodeURIComponent(shareText)}`;
-                    window.open(telegramUrl, "_blank");
-                    toast.success(`Compartilhando "${novel}" no Telegram`);
+                    setSelectedNovel(novel);
+                    toast.success(`"${novel}" selecionado para compartilhar`);
                   }}
                 >
                   {novel}
@@ -95,7 +100,7 @@ const Community = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-primary">
-            <MessageCircle className="mr-2" size={20} /> 
+            <ExternalLink className="mr-2" size={20} /> 
             Eventos da Comunidade
           </CardTitle>
         </CardHeader>
@@ -106,18 +111,38 @@ const Community = () => {
               <p className="text-sm text-muted-foreground mb-2">
                 Discussões semanais sobre novelas selecionadas pela comunidade.
               </p>
-              <Button variant="link" className="h-auto p-0 text-novel-gold-400" onClick={handleJoinTelegram}>
-                <ExternalLink size={14} className="mr-1" /> Ver no Telegram
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="link" className="h-auto p-0 text-novel-gold-400" onClick={handleJoinTelegram}>
+                  <ExternalLink size={14} className="mr-1" /> Ver no Telegram
+                </Button>
+                <TelegramShareButton
+                  text="Junte-se ao Clube do Livro do NovelBook - toda segunda-feira!"
+                  variant="link"
+                  className="h-auto p-0 text-primary"
+                  size="sm"
+                >
+                  Compartilhar
+                </TelegramShareButton>
+              </div>
             </div>
             <div className="border rounded-lg p-3">
               <h3 className="font-medium mb-1">Conversa com Autores - Mensal</h3>
               <p className="text-sm text-muted-foreground mb-2">
                 Sessões de perguntas e respostas com os autores das novelas.
               </p>
-              <Button variant="link" className="h-auto p-0 text-novel-gold-400" onClick={handleJoinTelegram}>
-                <ExternalLink size={14} className="mr-1" /> Ver no Telegram
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="link" className="h-auto p-0 text-novel-gold-400" onClick={handleJoinTelegram}>
+                  <ExternalLink size={14} className="mr-1" /> Ver no Telegram
+                </Button>
+                <TelegramShareButton
+                  text="Participe das sessões de Q&A com autores do NovelBook - evento mensal imperdível!"
+                  variant="link"
+                  className="h-auto p-0 text-primary"
+                  size="sm"
+                >
+                  Compartilhar
+                </TelegramShareButton>
+              </div>
             </div>
           </div>
         </CardContent>
