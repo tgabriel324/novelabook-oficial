@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   ChevronLeft, 
@@ -10,15 +10,124 @@ import {
   Moon,
   Type,
   Minus,
-  Plus
+  Plus,
+  Download,
+  MessageSquare,
+  BookmarkCheck
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import TelegramShareButton from "@/components/sharing/TelegramShareButton";
+import ReaderRecommendations from "@/components/recommendation/ReaderRecommendations";
+import { Novel } from "@/lib/data/types";
 
 const Reader = () => {
   const [fontSize, setFontSize] = useState(16);
   const [theme, setTheme] = useState("light");
   const [showSettings, setShowSettings] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
+  const [showNotesDialog, setShowNotesDialog] = useState(false);
+  const [note, setNote] = useState("");
+  const [noteTitle, setNoteTitle] = useState("");
+  const [isOfflineAvailable, setIsOfflineAvailable] = useState(false);
+  const [notes, setNotes] = useState<{id: string, title: string, content: string}[]>([]);
+  
+  // Mock de dados para testes
+  const novelId = "1";
+  const chapterTitle = "Capítulo 1: O Início";
+  const novelTitle = "A Filha do Imperador";
+  
+  // Mock de novels para recomendações
+  const mockNovels: Novel[] = [
+    { 
+      id: "1", 
+      title: "A Filha do Imperador", 
+      cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+1", 
+      price: 19.90,
+      author: { id: "a1", name: "Ana Silva" },
+      status: "published",
+      description: "Uma história épica sobre a filha de um imperador que precisa lutar pelo seu direito ao trono.",
+      categories: ["Fantasia", "Romance"],
+      tags: ["Realeza", "Política", "Intriga"],
+      reads: 12500,
+      purchases: 2300,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    { 
+      id: "2", 
+      title: "O Príncipe das Sombras", 
+      cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+2", 
+      price: 15.90,
+      author: { id: "a2", name: "Carlos Mendes" },
+      status: "published",
+      description: "Um príncipe exilado retorna para reclamar seu trono, mas descobre que sua família guarda segredos sombrios.",
+      categories: ["Fantasia", "Aventura"],
+      tags: ["Magia", "Realeza", "Mistério"],
+      reads: 9800,
+      purchases: 1800,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    { 
+      id: "3", 
+      title: "Renascendo em Outro Mundo", 
+      cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+3", 
+      price: 22.90,
+      author: { id: "a3", name: "Luciana Fraga" },
+      status: "published",
+      description: "Após um acidente fatal, um programador renasce em um mundo de fantasia com seus conhecimentos intactos.",
+      categories: ["Isekai", "Aventura"],
+      tags: ["Reencarnação", "Magia", "Aventura"],
+      reads: 15700,
+      purchases: 3200,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    { 
+      id: "4", 
+      title: "O Cavaleiro da Torre", 
+      cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+4", 
+      price: 12.90,
+      author: { id: "a4", name: "Paulo Cavalcanti" },
+      status: "published",
+      description: "A história de um jovem escudeiro que sonha em se tornar cavaleiro da lendária Torre de Cristal.",
+      categories: ["Fantasia Medieval", "Aventura"],
+      tags: ["Cavaleiros", "Fantasia", "Aventura"],
+      reads: 7800,
+      purchases: 1200,
+      rating: 4.5,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    { 
+      id: "5", 
+      title: "Alquimista Noturno", 
+      cover: "https://via.placeholder.com/300x450/9b87f5/ffffff?text=Novela+5", 
+      price: 17.90,
+      author: { id: "a5", name: "João Oliveira" },
+      status: "published",
+      description: "Um alquimista noturno que busca a chave para a liberdade e a paz.",
+      categories: ["Fantasia", "Mistério"],
+      tags: ["Magia", "Intriga", "Política"],
+      reads: 10500,
+      purchases: 1500,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+  ];
   
   const chapterContent = `
     <h1>Capítulo 1: O Início</h1>
@@ -35,6 +144,7 @@ const Reader = () => {
     <p>"O que você acabou de fazer?" ele perguntou em um sussurro.</p>
   `;
   
+  // Funções para o leitor
   const increaseFont = () => {
     if (fontSize < 24) setFontSize(fontSize + 1);
   };
@@ -47,6 +157,40 @@ const Reader = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
+  const toggleBookmark = () => {
+    setBookmarked(!bookmarked);
+    toast.success(bookmarked ? "Marcador removido" : "Página marcada com sucesso!");
+  };
+
+  const saveNote = () => {
+    if (noteTitle.trim() === "") {
+      toast.error("Por favor, adicione um título para sua nota");
+      return;
+    }
+
+    const newNote = {
+      id: Date.now().toString(),
+      title: noteTitle,
+      content: note
+    };
+
+    setNotes([...notes, newNote]);
+    setNote("");
+    setNoteTitle("");
+    setShowNotesDialog(false);
+    toast.success("Nota salva com sucesso!");
+  };
+
+  const toggleOfflineMode = () => {
+    if (isOfflineAvailable) {
+      setIsOfflineAvailable(false);
+      toast.success("Capítulo removido da leitura offline");
+    } else {
+      setIsOfflineAvailable(true);
+      toast.success("Capítulo salvo para leitura offline");
+    }
+  };
+
   return (
     <div className={`min-h-screen ${theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-900"}`}>
       <header className="sticky top-0 z-10 bg-card p-4 shadow-sm flex items-center justify-between">
@@ -56,15 +200,47 @@ const Reader = () => {
               <ChevronLeft size={24} />
             </Button>
           </Link>
-          <h1 className="text-lg font-semibold ml-2">A Filha do Imperador</h1>
+          <h1 className="text-lg font-semibold ml-2">{novelTitle}</h1>
         </div>
-        <div className="flex items-center">
-          <Button variant="ghost" size="icon" onClick={() => setShowSettings(!showSettings)}>
+        <div className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleOfflineMode}
+            className={isOfflineAvailable ? "text-novel-gold-400" : ""}
+          >
+            <Download size={20} />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setShowNotesDialog(true)}
+          >
+            <MessageSquare size={20} />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleBookmark}
+          >
+            {bookmarked ? 
+              <BookmarkCheck className="text-novel-gold-400" size={20} /> : 
+              <Bookmark size={20} />
+            }
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setShowSettings(!showSettings)}
+          >
             <Settings size={20} />
           </Button>
-          <Button variant="ghost" size="icon">
-            <Bookmark className="text-novel-gold-400" size={20} />
-          </Button>
+          <TelegramShareButton 
+            text={`Estou lendo "${novelTitle} - ${chapterTitle}" no NovelBook!`}
+            url="https://novelbook.app/leitor"
+            size="icon" 
+            variant="ghost"
+          />
         </div>
       </header>
       
@@ -118,6 +294,14 @@ const Reader = () => {
           }}
           dangerouslySetInnerHTML={{ __html: chapterContent }}
         />
+        
+        {/* Recomendações personalizadas */}
+        <div className="mt-10 border-t pt-6">
+          <ReaderRecommendations 
+            currentNovelId={novelId} 
+            novels={mockNovels} 
+          />
+        </div>
       </main>
       
       <footer className="sticky bottom-0 bg-card p-4 shadow-sm flex items-center justify-between">
@@ -134,6 +318,43 @@ const Reader = () => {
           <ChevronRight size={20} className="ml-2" />
         </Button>
       </footer>
+
+      {/* Modal de notas */}
+      <Dialog open={showNotesDialog} onOpenChange={setShowNotesDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Nota</DialogTitle>
+            <DialogDescription>
+              Adicione notas para ajudar em seus estudos ou para marcar momentos importantes da história.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Título da nota</Label>
+              <Input 
+                id="title" 
+                placeholder="Um título descritivo" 
+                value={noteTitle}
+                onChange={(e) => setNoteTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="note">Conteúdo da nota</Label>
+              <Textarea 
+                id="note" 
+                placeholder="Escreva sua nota aqui..."
+                rows={5}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNotesDialog(false)}>Cancelar</Button>
+            <Button onClick={saveNote}>Salvar Nota</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

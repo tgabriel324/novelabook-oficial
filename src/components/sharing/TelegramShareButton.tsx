@@ -18,6 +18,7 @@ const TelegramShareButton = ({
   onShareComplete,
   className,
   children,
+  variant = "telegram", // Default to the telegram variant
   ...props
 }: TelegramShareProps) => {
   const handleShare = () => {
@@ -41,10 +42,11 @@ const TelegramShareButton = ({
   return (
     <Button
       onClick={handleShare}
-      className={`bg-[#0088cc] hover:bg-[#0088cc]/90 gap-2 ${className}`}
+      variant={variant}
+      className={className}
       {...props}
     >
-      <MessageCircle size={18} />
+      <MessageCircle size={18} className="mr-2" />
       {children || "Compartilhar no Telegram"}
     </Button>
   );

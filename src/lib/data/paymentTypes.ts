@@ -39,3 +39,39 @@ export interface PurchaseReceipt {
   paymentMethod: PaymentMethod;
   paymentStatus: 'completed' | 'pending' | 'failed' | 'refunded';
 }
+
+// Novo tipo para armazenar marcadores
+export interface Bookmark {
+  id: string;
+  userId: string;
+  novelId: string;
+  chapterId: string;
+  title: string;
+  position: number; // Posição percentual na página (0-100)
+  createdAt: string;
+}
+
+// Novo tipo para armazenar notas do usuário
+export interface UserNote {
+  id: string;
+  userId: string;
+  novelId: string;
+  chapterId: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Novo tipo para armazenar conteúdo offline
+export interface OfflineContent {
+  id: string;
+  userId: string;
+  novelId: string;
+  chapterId: string;
+  title: string;
+  content: string;
+  coverImage: string;
+  downloadedAt: string;
+  expiresAt: string;
+}

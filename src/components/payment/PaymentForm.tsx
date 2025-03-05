@@ -8,8 +8,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Banknote, QrCode } from "lucide-react";
 import { toast } from "sonner";
-import { PaymentMethod, CardDetails } from "@/lib/data/paymentTypes";
+import { PaymentMethod, CardDetails, PurchaseReceipt } from "@/lib/data/paymentTypes";
 import { Novel } from "@/lib/data/types";
+import PurchaseReceiptComponent from "./PurchaseReceipt";
 
 interface PaymentFormProps {
   novel: Novel;
@@ -25,6 +26,8 @@ const PaymentForm = ({ novel, onPaymentComplete }: PaymentFormProps) => {
     cvv: ''
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receipt, setReceipt] = useState<PurchaseReceipt | null>(null);
 
   const handleCardDetailsChange = (field: keyof CardDetails) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setCardDetails(prev => ({
@@ -41,15 +44,38 @@ const PaymentForm = ({ novel, onPaymentComplete }: PaymentFormProps) => {
       const success = Math.random() > 0.2; // 80% de chance de sucesso para simular
       
       if (success) {
+        // Criar recibo de compra
+        const newReceipt: PurchaseReceipt = {
+          id: `purchase_${Date.now()}`,
+          userId: "user_current",
+          novelId: novel.id,
+          title: novel.title,
+          price: novel.price || 0,
+          purchaseDate: new Date().toISOString(),
+          paymentMethod: paymentMethod,
+          paymentStatus: 'completed'
+        };
+        
+        setReceipt(newReceipt);
+        setShowReceipt(true);
         toast.success(`Pagamento de ${novel.price?.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})} processado com sucesso!`);
       } else {
         toast.error("Falha no processamento do pagamento. Por favor, tente novamente.");
+        onPaymentComplete(false);
       }
       
       setIsProcessing(false);
-      onPaymentComplete(success);
     }, 2000);
   };
+
+  const handleReceiptClose = () => {
+    setShowReceipt(false);
+    onPaymentComplete(true);
+  };
+
+  if (showReceipt && receipt) {
+    return <PurchaseReceiptComponent receipt={receipt} onClose={handleReceiptClose} />;
+  }
 
   return (
     <Card className="w-full max-w-md mx-auto">
