@@ -24,6 +24,7 @@ import Reader from "@/pages/client/Reader";
 import Community from "@/pages/client/Community";
 import Support from "@/pages/client/Support";
 import Documentation from "@/pages/client/Documentation";
+import BookDetails from "@/pages/client/BookDetails";
 
 // Auth Pages
 import Login from "@/pages/auth/Login";
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/comunidade" element={<Community />} />
             <Route path="/suporte" element={<Support />} />
             <Route path="/documentacao" element={<Documentation />} />
+            <Route path="/livro/:id" element={<BookDetails />} />
           </Route>
 
           {/* Reader Route - Standalone without bottom navigation */}

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,7 @@ const Library = () => {
     length: "all",
     status: "all"
   });
-  const [favorites, setFavorites] = useState<number[]>([1]); // Livro 1 já favorito como exemplo
+  const [favorites, setFavorites] = useState<number[]>([1]);
 
   const myNovels = [
     { 
@@ -140,16 +139,12 @@ const Library = () => {
   };
 
   const handleContinueReading = (bookId: number) => {
-    // Simular navegação para a página de leitura
     navigate(`/leitor?book=${bookId}`);
     toast.success("Continuando a leitura...");
   };
 
   const handleViewDetails = (bookId: number) => {
-    // Aqui você navegaria para uma página de detalhes completos
-    toast.success("Abrindo detalhes completos do livro");
-    // Por enquanto, vamos apenas mostrar um toast
-    // navigate(`/livro/${bookId}`);
+    navigate(`/livro/${bookId}`);
   };
 
   const filterBooks = (books: any[]) => {
@@ -166,7 +161,6 @@ const Library = () => {
 
   const filteredNovels = filterBooks(myNovels);
   const filteredRecent = filterBooks(recentlyAcquired);
-  // Filtrar apenas favoritos
   const favoriteNovels = [...myNovels, ...recentlyAcquired].filter(book => favorites.includes(book.id));
 
   const renderBookCard = (book: any) => {

@@ -13,7 +13,9 @@ import {
   Plus,
   Download,
   MessageSquare,
-  BookmarkCheck
+  BookmarkCheck,
+  Share,
+  ChevronDown
 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +35,13 @@ import TelegramShareButton from "@/components/sharing/TelegramShareButton";
 import ReaderRecommendations from "@/components/recommendation/ReaderRecommendations";
 import { Novel } from "@/lib/data/types";
 import NovelSeoTags from "@/components/seo/NovelSeoTags";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Reader = () => {
   const navigate = useNavigate();
@@ -48,6 +57,16 @@ const Reader = () => {
   const [notes, setNotes] = useState<{id: string, title: string, content: string}[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 5; // Mock data
+  const [currentChapter, setCurrentChapter] = useState("1");
+  
+  // Lista de capítulos mockada para demonstração
+  const chapters = [
+    { id: "1", title: "Capítulo 1: O Início" },
+    { id: "2", title: "Capítulo 2: A Descoberta" },
+    { id: "3", title: "Capítulo 3: O Confronto" },
+    { id: "4", title: "Capítulo 4: A Revelação" },
+    { id: "5", title: "Capítulo 5: O Desfecho" },
+  ];
   
   // Obter id do livro da URL se disponível
   const params = new URLSearchParams(location.search);
@@ -55,7 +74,7 @@ const Reader = () => {
   
   // Mock de dados para testes
   const novelId = bookId;
-  const chapterTitle = "Capítulo 1: O Início";
+  const chapterTitle = chapters.find(c => c.id === currentChapter)?.title || "Capítulo 1: O Início";
   const novelTitle = "A Filha do Imperador";
   
   // Mock da novela para SEO
@@ -237,6 +256,13 @@ const Reader = () => {
     }
   };
 
+  const handleChapterChange = (chapterId: string) => {
+    setCurrentChapter(chapterId);
+    setCurrentPage(1); // Resetar para a primeira página do novo capítulo
+    window.scrollTo(0, 0);
+    toast.success(`Navegando para o ${chapters.find(c => c.id === chapterId)?.title}`);
+  };
+
   // Efeito para monitorar teclas de navegação
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -258,57 +284,86 @@ const Reader = () => {
       {/* SEO Tags */}
       <NovelSeoTags novel={mockNovel} />
       
-      <header className="sticky top-0 z-10 bg-card p-4 shadow-sm flex items-center justify-between">
-        <div className="flex items-center">
-          <Link to="/biblioteca">
-            <Button variant="ghost" size="icon">
-              <ChevronLeft size={24} />
+      <header className="sticky top-0 z-10 bg-card p-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Link to="/biblioteca">
+              <Button variant="ghost" size="icon">
+                <ChevronLeft size={24} />
+              </Button>
+            </Link>
+            <h1 className="text-lg font-semibold ml-2">{novelTitle}</h1>
+          </div>
+          
+          {/* Seletor de capítulos */}
+          <div className="mx-2 flex-1 max-w-xs">
+            <Select 
+              value={currentChapter} 
+              onValueChange={handleChapterChange}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecionar capítulo" />
+              </SelectTrigger>
+              <SelectContent>
+                {chapters.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    {chapter.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleOfflineMode}
+              className={isOfflineAvailable ? "text-novel-gold-400" : ""}
+            >
+              <Download size={20} />
             </Button>
-          </Link>
-          <h1 className="text-lg font-semibold ml-2">{novelTitle}</h1>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleOfflineMode}
-            className={isOfflineAvailable ? "text-novel-gold-400" : ""}
-          >
-            <Download size={20} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setShowNotesDialog(true)}
-          >
-            <MessageSquare size={20} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleBookmark}
-          >
-            {bookmarked ? 
-              <BookmarkCheck className="text-novel-gold-400" size={20} /> : 
-              <Bookmark size={20} />
-            }
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            <Settings size={20} />
-          </Button>
-          <TelegramShareButton 
-            text={`Estou lendo "${novelTitle} - ${chapterTitle}" no NovelBook!`}
-            url="https://novelbook.app/leitor"
-            size="icon" 
-            variant="ghost"
-          />
+            
+            <div className="flex items-center space-x-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setShowNotesDialog(true)}
+              >
+                <MessageSquare size={20} />
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleBookmark}
+              >
+                {bookmarked ? 
+                  <BookmarkCheck className="text-novel-gold-400" size={20} /> : 
+                  <Bookmark size={20} />
+                }
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setShowSettings(!showSettings)}
+              >
+                <Settings size={20} />
+              </Button>
+              
+              <TelegramShareButton 
+                text={`Estou lendo "${novelTitle} - ${chapterTitle}" no NovelBook!`}
+                url="https://novelbook.app/leitor"
+                size="icon" 
+                variant="ghost"
+              />
+            </div>
+          </div>
         </div>
       </header>
       
+      {/* O resto do código permanece o mesmo */}
       {showSettings && (
         <Card className={`mx-4 my-2 ${theme === "dark" ? "bg-gray-800" : "bg-white"}`}>
           <CardContent className="py-4">
@@ -379,7 +434,7 @@ const Reader = () => {
           Anterior
         </Button>
         <div className="text-sm text-center">
-          <span className="text-muted-foreground">Capítulo 1</span>
+          <span className="text-muted-foreground">{chapters.find(c => c.id === currentChapter)?.title}</span>
           <div className="text-novel-gold-400 text-xs mt-1">Página {currentPage} de {totalPages}</div>
         </div>
         <Button 

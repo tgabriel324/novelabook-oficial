@@ -24,8 +24,8 @@ const ClientLayout = () => {
       <header className="sticky top-0 z-10 bg-card py-4 px-4 shadow-sm">
         <div className="container flex items-center justify-between">
           <div className="flex items-center">
-            <BookOpen className="text-primary" size={24} />
-            <span className="ml-2 text-xl font-bold">NovelBook</span>
+            <BookOpen className="text-novel-lilac-400" size={24} />
+            <span className="ml-2 text-xl font-bold text-novel-lilac-500">NovelBook</span>
           </div>
           <div className="text-right">
             <h1 className="text-xl font-bold text-primary">{getHeaderTitle()}</h1>
