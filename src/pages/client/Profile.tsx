@@ -1,17 +1,21 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Book, Heart, Settings, LogOut } from "lucide-react";
+import { User, Book, Heart, Settings, LogOut, Crown, Shield } from "lucide-react";
 
 const Profile = () => {
   return (
     <div className="container py-6">
       <header className="mb-6 text-center">
-        <div className="mx-auto mb-3 flex h-24 w-24 items-center justify-center rounded-full bg-primary text-white">
+        <div className="mx-auto mb-3 flex h-24 w-24 items-center justify-center rounded-full novel-gold-gradient text-white">
           <User size={40} />
         </div>
         <h1 className="text-2xl font-bold">João Silva</h1>
         <p className="text-muted-foreground">Membro desde Mai 2023</p>
+        <Button variant="secondary" className="mt-4 shadow-md">
+          <Crown className="mr-2" size={18} />
+          Tornar-se Premium
+        </Button>
       </header>
 
       <Card className="mb-6">
@@ -34,6 +38,10 @@ const Profile = () => {
           <Button variant="outline" className="flex w-full justify-start">
             <Settings className="mr-2" size={18} />
             Preferências
+          </Button>
+          <Button variant="outline" className="flex w-full justify-start">
+            <Shield className="mr-2" size={18} />
+            Segurança da Conta
           </Button>
         </CardContent>
       </Card>

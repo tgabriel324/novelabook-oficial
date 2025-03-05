@@ -15,6 +15,8 @@ import Dashboard from "@/pages/admin/Dashboard";
 import Discover from "@/pages/client/Discover";
 import Library from "@/pages/client/Library";
 import Profile from "@/pages/client/Profile";
+import Store from "@/pages/client/Store";
+import Reader from "@/pages/client/Reader";
 
 // Auth Pages
 import Login from "@/pages/auth/Login";
@@ -44,10 +46,17 @@ const App = () => (
           }>
             <Route path="/" element={<Discover />} />
             <Route path="/biblioteca" element={<Library />} />
-            <Route path="/loja" element={<Navigate to="/biblioteca" />} /> {/* Placeholder */}
+            <Route path="/loja" element={<Store />} />
             <Route path="/perfil" element={<Profile />} />
             <Route path="/mais" element={<Navigate to="/perfil" />} /> {/* Placeholder */}
           </Route>
+
+          {/* Reader Route - Standalone without bottom navigation */}
+          <Route path="/leitor" element={
+            <AuthCheck allowedRoles={['user']}>
+              <Reader />
+            </AuthCheck>
+          } />
 
           {/* Admin Routes */}
           <Route path="/admin" element={
