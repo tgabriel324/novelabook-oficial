@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
@@ -353,6 +354,173 @@ function getPayloadConfigFromPayload(
     : config[key as keyof typeof config]
 }
 
+// New components to fix errors
+interface ChartProps {
+  data: any[]
+  index: string
+  categories: string[]
+  colors: string[]
+  valueFormatter?: (value: any) => string
+  yAxisWidth?: number
+}
+
+const BarChart: React.FC<ChartProps> = ({
+  data,
+  index,
+  categories,
+  colors,
+  valueFormatter,
+  yAxisWidth,
+}) => {
+  const config = React.useMemo(() => {
+    return categories.reduce<ChartConfig>((acc, category, i) => {
+      acc[category] = {
+        label: category,
+        color: colors[i % colors.length],
+      }
+      return acc
+    }, {})
+  }, [categories, colors])
+
+  return (
+    <ChartContainer config={config}>
+      <RechartsPrimitive.BarChart data={data} margin={{ top: 16, right: 16, bottom: 16, left: 16 }}>
+        <RechartsPrimitive.XAxis
+          dataKey={index}
+          stroke="#888888"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+        />
+        <RechartsPrimitive.YAxis
+          stroke="#888888"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+          width={yAxisWidth}
+          tickFormatter={valueFormatter}
+        />
+        <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
+        {categories.map((category, i) => (
+          <RechartsPrimitive.Bar
+            key={category}
+            dataKey={category}
+            fill={colors[i % colors.length]}
+            radius={[4, 4, 0, 0]}
+          />
+        ))}
+      </RechartsPrimitive.BarChart>
+    </ChartContainer>
+  )
+}
+
+const AreaChart: React.FC<ChartProps> = ({
+  data,
+  index,
+  categories,
+  colors,
+  valueFormatter,
+  yAxisWidth,
+}) => {
+  const config = React.useMemo(() => {
+    return categories.reduce<ChartConfig>((acc, category, i) => {
+      acc[category] = {
+        label: category,
+        color: colors[i % colors.length],
+      }
+      return acc
+    }, {})
+  }, [categories, colors])
+
+  return (
+    <ChartContainer config={config}>
+      <RechartsPrimitive.AreaChart data={data} margin={{ top: 16, right: 16, bottom: 16, left: 16 }}>
+        <RechartsPrimitive.CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+        <RechartsPrimitive.XAxis
+          dataKey={index}
+          stroke="#888888"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+        />
+        <RechartsPrimitive.YAxis
+          stroke="#888888"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+          width={yAxisWidth}
+          tickFormatter={valueFormatter}
+        />
+        <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
+        {categories.map((category, i) => (
+          <RechartsPrimitive.Area
+            key={category}
+            type="monotone"
+            dataKey={category}
+            fill={colors[i % colors.length]}
+            stroke={colors[i % colors.length]}
+            fillOpacity={0.2}
+          />
+        ))}
+      </RechartsPrimitive.AreaChart>
+    </ChartContainer>
+  )
+}
+
+const LineChart: React.FC<ChartProps> = ({
+  data,
+  index,
+  categories,
+  colors,
+  valueFormatter,
+  yAxisWidth,
+}) => {
+  const config = React.useMemo(() => {
+    return categories.reduce<ChartConfig>((acc, category, i) => {
+      acc[category] = {
+        label: category,
+        color: colors[i % colors.length],
+      }
+      return acc
+    }, {})
+  }, [categories, colors])
+
+  return (
+    <ChartContainer config={config}>
+      <RechartsPrimitive.LineChart data={data} margin={{ top: 16, right: 16, bottom: 16, left: 16 }}>
+        <RechartsPrimitive.CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+        <RechartsPrimitive.XAxis
+          dataKey={index}
+          stroke="#888888"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+        />
+        <RechartsPrimitive.YAxis
+          stroke="#888888"
+          fontSize={12}
+          tickLine={false}
+          axisLine={false}
+          width={yAxisWidth}
+          tickFormatter={valueFormatter}
+        />
+        <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
+        {categories.map((category, i) => (
+          <RechartsPrimitive.Line
+            key={category}
+            type="monotone"
+            dataKey={category}
+            stroke={colors[i % colors.length]}
+            strokeWidth={2}
+            dot={{ r: 4, fill: colors[i % colors.length] }}
+            activeDot={{ r: 6, fill: colors[i % colors.length] }}
+          />
+        ))}
+      </RechartsPrimitive.LineChart>
+    </ChartContainer>
+  )
+}
+
 export {
   ChartContainer,
   ChartTooltip,
@@ -360,4 +528,7 @@ export {
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
+  BarChart,
+  AreaChart,
+  LineChart
 }

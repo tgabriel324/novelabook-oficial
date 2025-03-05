@@ -102,12 +102,12 @@ const Content = () => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [selectedNovel, setSelectedNovel] = useState<Novel | null>(null);
   
-  // Form State for New Novel
+  // Form State for New Novel - Updated the type for status to match Novel's status type
   const [newNovelForm, setNewNovelForm] = useState({
     title: "",
     authorId: "",
     cover: "/placeholder.svg",
-    status: "draft" as const,
+    status: "draft" as Novel['status'],
     price: 0,
     description: "",
     categories: [] as string[],
