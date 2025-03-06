@@ -1,127 +1,83 @@
+
 import { useState } from 'react';
-import { Transaction, BankReconciliation } from '@/lib/data/paymentTypes';
+import { BankReconciliation, Transaction } from '@/lib/data/paymentTypes';
 import { ReconciliationMatch } from './types';
-import { generateUniqueId } from './utils';
-import { useToast } from '@/hooks/use-toast';
-import { importBankStatement } from '@/services/admin/transactionAdminService';
 
-export const useBankReconciliation = ({ 
-  reconciliations, 
-  setReconciliations, 
-  transactions 
-}: { 
-  reconciliations: BankReconciliation[], 
-  setReconciliations: React.Dispatch<React.SetStateAction<BankReconciliation[]>>,
-  transactions: Transaction[]
-}) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+interface BankReconciliationProps {
+  reconciliations: BankReconciliation[];
+  setReconciliations: React.Dispatch<React.SetStateAction<BankReconciliation[]>>;
+  transactions: Transaction[];
+}
 
-  const importBankStatementFile = async (file: File) => {
-    setIsLoading(true);
+export const useBankReconciliation = ({
+  reconciliations,
+  setReconciliations,
+  transactions
+}: BankReconciliationProps) => {
+  const [importProgress, setImportProgress] = useState(0);
+
+  const importBankStatementFile = (file: File) => {
+    // Simulate file processing with a progress indicator
+    setImportProgress(0);
     
-    try {
-      const result = await importBankStatement(file);
-      
-      if (result.success && result.entries && result.statementId) {
-        // Create new reconciliation records
-        const newReconciliations: BankReconciliation[] = result.entries.map(entry => ({
-          id: generateUniqueId('rec'),
-          bankStatementId: result.statementId!,
-          transactionId: '', // Will be filled during reconciliation
-          status: 'unmatched',
-          bankAmount: entry.amount,
-          systemAmount: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }));
-        
-        setReconciliations([...newReconciliations, ...reconciliations]);
-        
-        toast({
-          title: "Extrato importado",
-          description: `Importados ${result.entries.length} lançamentos para conciliação`,
-        });
-        
-        return {
-          statementId: result.statementId,
-          entries: result.entries,
-          reconciliations: newReconciliations
-        };
-      } else {
-        toast({
-          title: "Erro",
-          description: result.message,
-          variant: "destructive"
-        });
-        return null;
-      }
-    } catch (error) {
-      console.error("Erro ao importar extrato:", error);
-      toast({
-        title: "Erro",
-        description: "Falha ao importar arquivo de extrato bancário",
-        variant: "destructive"
+    const interval = setInterval(() => {
+      setImportProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 10;
       });
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
+    }, 300);
+
+    // In a real application, this would parse the file and match transactions
+    setTimeout(() => {
+      clearInterval(interval);
+      setImportProgress(100);
+      
+      // Mock new reconciliations
+      const newReconciliation: BankReconciliation = {
+        id: `rec_${Date.now()}`,
+        bankStatementId: `stmt_${Date.now()}`,
+        transactionId: "", // To be matched manually
+        status: "unmatched",
+        bankAmount: 49.99,
+        systemAmount: 0, // Will be set when matched
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      setReconciliations(prev => [...prev, newReconciliation]);
+    }, 3000);
   };
 
-  const reconcileManually = (
-    { reconciliationId, transactionId }: ReconciliationMatch
-  ) => {
-    // Find reconciliation and transaction
-    const reconciliation = reconciliations.find(r => r.id === reconciliationId);
-    const transaction = transactions.find(t => t.id === transactionId);
+  const reconcileManually = (reconciliationData: ReconciliationMatch) => {
+    const { reconciliationId, transactionId } = reconciliationData;
     
-    if (!reconciliation || !transaction) {
-      toast({
-        title: "Erro",
-        description: "Reconciliação ou transação não encontrada",
-        variant: "destructive"
-      });
-      return null;
+    // Find the corresponding transaction
+    const matchedTransaction = transactions.find(t => t.id === transactionId);
+    
+    if (matchedTransaction) {
+      // Update the reconciliation record
+      setReconciliations(prev => 
+        prev.map(r => 
+          r.id === reconciliationId 
+            ? {
+                ...r,
+                transactionId,
+                status: r.bankAmount === matchedTransaction.amount ? "matched" : "discrepancy",
+                systemAmount: matchedTransaction.amount,
+                updatedAt: new Date().toISOString()
+              } 
+            : r
+        )
+      );
     }
-    
-    // Calculate discrepancy
-    const discrepancyAmount = reconciliation.bankAmount !== transaction.amount
-      ? reconciliation.bankAmount - transaction.amount
-      : undefined;
-    
-    // Update reconciliation
-    const status = discrepancyAmount ? "partial_match" : "matched";
-    
-    const updatedReconciliations = reconciliations.map(r => {
-      if (r.id === reconciliationId) {
-        return {
-          ...r,
-          transactionId,
-          systemAmount: transaction.amount,
-          status: status as BankReconciliation['status'],
-          discrepancyAmount,
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return r;
-    });
-    
-    setReconciliations(updatedReconciliations);
-    
-    toast({
-      title: "Conciliado",
-      description: discrepancyAmount 
-        ? `Conciliado com discrepância de ${discrepancyAmount.toFixed(2)}`
-        : "Conciliado com sucesso",
-    });
-    
-    return updatedReconciliations.find(r => r.id === reconciliationId);
   };
 
   return {
-    isLoading,
     importBankStatementFile,
-    reconcileManually
+    reconcileManually,
+    importProgress
   };
 };
