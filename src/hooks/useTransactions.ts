@@ -366,19 +366,21 @@ export const useTransactions = () => {
             ? rec.bankAmount - transaction.amount 
             : undefined;
         
+        const status = discrepancyAmount ? "partial_match" : "matched";
+        
         return {
           ...rec,
           transactionId,
           systemAmount: transaction.amount,
-          status: discrepancyAmount ? "partial_match" : "matched",
+          status: status as "matched" | "unmatched" | "partial_match",
           discrepancyAmount,
           updatedAt: new Date().toISOString()
-        } as BankReconciliation;
+        };
       }
       return rec;
     });
     
-    setReconciliations(updatedReconciliations);
+    setReconciliations(updatedReconciliations as BankReconciliation[]);
     return updatedReconciliations.find(rec => rec.id === id);
   };
 
@@ -394,14 +396,14 @@ export const useTransactions = () => {
           discrepancyReason: reason,
           resolvedById: adminId,
           resolvedAt: new Date().toISOString(),
-          status: "matched",
+          status: "matched" as "matched" | "unmatched" | "partial_match",
           updatedAt: new Date().toISOString()
-        } as BankReconciliation;
+        };
       }
       return rec;
     });
     
-    setReconciliations(updatedReconciliations);
+    setReconciliations(updatedReconciliations as BankReconciliation[]);
     return updatedReconciliations.find(rec => rec.id === id);
   };
 

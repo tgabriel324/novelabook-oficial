@@ -265,14 +265,14 @@ export const useSubscriptions = () => {
       if (inv.id === id) {
         return {
           ...inv,
-          status: "paid",
+          status: "paid" as "draft" | "open" | "paid" | "uncollectible" | "void",
           paidAt: new Date().toISOString()
         };
       }
       return inv;
     });
     
-    setInvoices(updatedInvoices);
+    setInvoices(updatedInvoices as SubscriptionInvoice[]);
     return updatedInvoices.find(inv => inv.id === id);
   };
 
