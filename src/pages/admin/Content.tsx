@@ -1,17 +1,36 @@
 
-import React, { useState } from "react";
-import { useNovels, useUsers, useCategories, useActivityLogs } from "@/hooks/useAdminData";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
+import { Label } from "@/components/ui/label";
+import { 
+  Table, 
+  TableBody, 
+  TableCaption, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { 
+  BookOpen, 
+  Plus, 
+  Search, 
+  Filter, 
+  Edit, 
+  Trash, 
+  Eye, 
+  BookOpenCheck,
+  PlusCircle,
+  FileText,
+  Tag,
+  CheckCircle2,
+  XCircle,
+  Clock
+} from "lucide-react";
+import { useNovels, useCategories } from "@/hooks/useAdminData";
+import { 
   Dialog,
   DialogContent,
   DialogDescription,
@@ -20,740 +39,466 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { Novel } from "@/lib/data/types";
-import { 
-  BookOpen, 
-  MoreVertical, 
-  Plus, 
-  Pencil, 
-  Trash,
-  Search,
-  Tag,
-  Filter,
-  FileText,
-  BookPlus,
-  CheckCircle,
-  Clock,
-  Star,
-  Archive 
-} from "lucide-react";
-
-type StatusColors = {
-  [key in Novel['status']]: string;
-};
-
-const statusColors: StatusColors = {
-  draft: "bg-yellow-100 text-yellow-800",
-  published: "bg-green-100 text-green-800",
-  featured: "bg-purple-100 text-purple-800",
-  archived: "bg-gray-100 text-gray-800",
-};
-
-const statusLabels = {
-  draft: "Rascunho",
-  published: "Publicado",
-  featured: "Destaque",
-  archived: "Arquivado",
-};
+import { Novel, Category } from "@/lib/data/types";
 
 const Content = () => {
   const { novels, addNovel, updateNovel, deleteNovel } = useNovels();
-  const { users } = useUsers();
-  const { categories } = useCategories();
-  const { addLog } = useActivityLogs();
-  
-  const [selectedTab, setSelectedTab] = useState("novels");
+  const { categories, addCategory, updateCategory, deleteCategory } = useCategories();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  
-  const [isNewNovelOpen, setIsNewNovelOpen] = useState(false);
-  const [isEditNovelOpen, setIsEditNovelOpen] = useState(false);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [selectedNovel, setSelectedNovel] = useState<Novel | null>(null);
-  
-  // Form State for New Novel - Updated the type for status to match Novel's status type
-  const [newNovelForm, setNewNovelForm] = useState({
+  const [activeTab, setActiveTab] = useState("novels");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+
+  // Novel form state
+  const [novelForm, setNovelForm] = useState<Partial<Novel>>({
     title: "",
-    authorId: "",
-    cover: "/placeholder.svg",
-    status: "draft" as Novel['status'],
-    price: 0,
     description: "",
-    categories: [] as string[],
-    tags: [] as string[],
+    status: "draft",
+    price: 0,
+    categories: [],
+    tags: []
   });
-  
-  // Filtered Novels
+
+  // Category form state
+  const [categoryForm, setCategoryForm] = useState<Partial<Category>>({
+    name: "",
+    slug: "",
+    description: ""
+  });
+
+  // Filtered novels based on search and status
   const filteredNovels = novels.filter(novel => {
-    const matchesSearch = novel.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          novel.author.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || novel.status === statusFilter;
-    const matchesCategory = !categoryFilter || novel.categories.includes(categoryFilter);
+    const matchesSearch = novel.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         novel.author.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         novel.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    return matchesSearch && matchesStatus && matchesCategory;
+    const matchesStatus = selectedStatus ? novel.status === selectedStatus : true;
+    
+    return matchesSearch && matchesStatus;
   });
-  
-  // Authors list for select dropdown
-  const authors = users.filter(user => user.role === "author");
-  
-  // Reset form
-  const resetForm = () => {
-    setNewNovelForm({
-      title: "",
-      authorId: "",
-      cover: "/placeholder.svg",
-      status: "draft",
-      price: 0,
-      description: "",
-      categories: [],
-      tags: [],
-    });
-  };
-  
-  // Handle form input change
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+
+  // Filtered categories based on search
+  const filteredCategories = categories.filter(category => 
+    category.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Handle novel form change
+  const handleNovelFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setNewNovelForm({
-      ...newNovelForm,
-      [name]: value,
-    });
-  };
-  
-  // Handle form select change
-  const handleSelectChange = (name: string, value: string) => {
-    setNewNovelForm({
-      ...newNovelForm,
-      [name]: value,
-    });
-  };
-  
-  // Add new novel
-  const handleAddNovel = () => {
-    const author = users.find(user => user.id === newNovelForm.authorId);
     
-    if (!author) {
-      toast.error("Autor não encontrado");
-      return;
+    if (name === "price") {
+      setNovelForm({ ...novelForm, [name]: parseFloat(value) || 0 });
+    } else if (name === "categories" || name === "tags") {
+      setNovelForm({ ...novelForm, [name]: value.split(",").map(item => item.trim()) });
+    } else {
+      setNovelForm({ ...novelForm, [name]: value });
     }
+  };
+
+  // Handle category form change
+  const handleCategoryFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setCategoryForm({ ...categoryForm, [name]: value });
+  };
+
+  // Submit new novel
+  const handleNovelSubmit = () => {
+    if (!novelForm.title || !novelForm.description) return;
     
     const newNovel = {
-      title: newNovelForm.title,
-      author: {
-        id: author.id,
-        name: author.name,
-      },
-      cover: newNovelForm.cover,
-      status: newNovelForm.status,
-      price: newNovelForm.price,
-      description: newNovelForm.description,
-      categories: newNovelForm.categories,
-      tags: newNovelForm.tags,
-    };
-    
-    const fullNovel = {
-      ...newNovel,
+      ...novelForm,
+      author: { id: "author_1", name: "Admin User" }, // In a real app, this would be the current user
+      cover: "/placeholder.svg", // Default cover
       reads: 0,
       purchases: 0,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+      updatedAt: new Date().toISOString()
+    } as Omit<Novel, 'id'>;
     
-    addNovel(fullNovel);
+    addNovel(newNovel);
     
-    addLog({
-      user: {
-        id: "admin",
-        name: "Administrador",
-      },
-      action: "Criou uma nova novela",
-      entity: {
-        type: "novel",
-        id: "new",
-        name: newNovelForm.title,
-      },
-      details: `Novela "${newNovelForm.title}" criada com status ${statusLabels[newNovelForm.status]}`,
+    // Reset form
+    setNovelForm({
+      title: "",
+      description: "",
+      status: "draft",
+      price: 0,
+      categories: [],
+      tags: []
     });
-    
-    setIsNewNovelOpen(false);
-    resetForm();
-    toast.success("Novela adicionada com sucesso!");
   };
-  
-  // Edit novel
-  const handleEditNovel = () => {
-    if (!selectedNovel) return;
+
+  // Submit new category
+  const handleCategorySubmit = () => {
+    if (!categoryForm.name) return;
     
-    const author = users.find(user => user.id === newNovelForm.authorId);
+    // Generate slug if not provided
+    const slug = categoryForm.slug || categoryForm.name.toLowerCase().replace(/\s+/g, '-');
     
-    if (!author) {
-      toast.error("Autor não encontrado");
-      return;
+    const newCategory = {
+      ...categoryForm,
+      slug,
+      count: 0
+    } as Omit<Category, 'id'>;
+    
+    addCategory(newCategory);
+    
+    // Reset form
+    setCategoryForm({
+      name: "",
+      slug: "",
+      description: ""
+    });
+  };
+
+  // Delete a novel
+  const handleDeleteNovel = (id: string) => {
+    if (window.confirm("Tem certeza que deseja excluir esta novela?")) {
+      deleteNovel(id);
     }
-    
-    const updatedNovel = {
-      title: newNovelForm.title,
-      author: {
-        id: author.id,
-        name: author.name,
-      },
-      cover: newNovelForm.cover,
-      status: newNovelForm.status,
-      price: newNovelForm.price,
-      description: newNovelForm.description,
-      categories: newNovelForm.categories,
-      tags: newNovelForm.tags,
-      updatedAt: new Date().toISOString(),
-    };
-    
-    updateNovel(selectedNovel.id, updatedNovel);
-    
-    addLog({
-      user: {
-        id: "admin",
-        name: "Administrador",
-      },
-      action: "Atualizou uma novela",
-      entity: {
-        type: "novel",
-        id: selectedNovel.id,
-        name: newNovelForm.title,
-      },
-      details: `Novela "${newNovelForm.title}" atualizada com status ${statusLabels[newNovelForm.status]}`,
-    });
-    
-    setIsEditNovelOpen(false);
-    setSelectedNovel(null);
-    resetForm();
-    toast.success("Novela atualizada com sucesso!");
   };
-  
-  // Delete novel
-  const handleDeleteNovel = () => {
-    if (!selectedNovel) return;
-    
-    deleteNovel(selectedNovel.id);
-    
-    addLog({
-      user: {
-        id: "admin",
-        name: "Administrador",
-      },
-      action: "Excluiu uma novela",
-      entity: {
-        type: "novel",
-        id: selectedNovel.id,
-        name: selectedNovel.title,
-      },
-      details: `Novela "${selectedNovel.title}" removida do sistema`,
-    });
-    
-    setIsDeleteConfirmOpen(false);
-    setSelectedNovel(null);
-    toast.success("Novela excluída com sucesso!");
+
+  // Delete a category
+  const handleDeleteCategory = (id: string) => {
+    if (window.confirm("Tem certeza que deseja excluir esta categoria?")) {
+      deleteCategory(id);
+    }
   };
-  
-  // Open edit dialog
-  const openEditDialog = (novel: Novel) => {
-    setSelectedNovel(novel);
-    setNewNovelForm({
-      title: novel.title,
-      authorId: novel.author.id,
-      cover: novel.cover,
-      status: novel.status,
-      price: novel.price || 0,
-      description: novel.description,
-      categories: novel.categories,
-      tags: novel.tags,
-    });
-    setIsEditNovelOpen(true);
-  };
-  
-  // Open delete confirm dialog
-  const openDeleteDialog = (novel: Novel) => {
-    setSelectedNovel(novel);
-    setIsDeleteConfirmOpen(true);
-  };
-  
-  // Get status icon
-  const getStatusIcon = (status: Novel['status']) => {
+
+  // Get status badge color
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case "draft":
-        return <Clock className="h-4 w-4 mr-1" />;
-      case "published":
-        return <CheckCircle className="h-4 w-4 mr-1" />;
-      case "featured":
-        return <Star className="h-4 w-4 mr-1" />;
-      case "archived":
-        return <Archive className="h-4 w-4 mr-1" />;
+      case 'published':
+        return <Badge variant="secondary" className="bg-green-500 hover:bg-green-600">{status}</Badge>;
+      case 'draft':
+        return <Badge variant="outline">{status}</Badge>;
+      case 'featured':
+        return <Badge variant="secondary" className="bg-purple-500 hover:bg-purple-600">{status}</Badge>;
+      case 'archived':
+        return <Badge variant="secondary" className="bg-gray-500 hover:bg-gray-600">{status}</Badge>;
       default:
-        return null;
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
-  
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Gerenciamento de Conteúdo</h1>
-          <p className="text-muted-foreground">
-            Gerencie novelas, capítulos e categorias.
-          </p>
-        </div>
-        <Button onClick={() => setIsNewNovelOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Nova Novela
-        </Button>
-      </div>
+    <div className="container mx-auto">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold">Gerenciamento de Conteúdo</h1>
+        <p className="text-muted-foreground">Gerencie novelas, capítulos, categorias e tags.</p>
+      </header>
       
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full md:w-auto grid-cols-3">
-          <TabsTrigger value="novels" className="flex items-center">
-            <BookOpen className="h-4 w-4 mr-2" /> Novelas
-          </TabsTrigger>
-          <TabsTrigger value="chapters" className="flex items-center">
-            <FileText className="h-4 w-4 mr-2" /> Capítulos
-          </TabsTrigger>
-          <TabsTrigger value="categories" className="flex items-center">
-            <Tag className="h-4 w-4 mr-2" /> Categorias
-          </TabsTrigger>
-        </TabsList>
-        
-        <div className="mt-4 mb-6 flex flex-col sm:flex-row gap-4">
-          <div className="relative w-full sm:w-1/3">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex justify-between items-center mb-4">
+          <TabsList>
+            <TabsTrigger value="novels" className="flex items-center gap-2">
+              <BookOpen size={16} />
+              <span>Novelas</span>
+            </TabsTrigger>
+            <TabsTrigger value="categories" className="flex items-center gap-2">
+              <Tag size={16} />
+              <span>Categorias</span>
+            </TabsTrigger>
+          </TabsList>
           
-          <div className="flex gap-2 items-center">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select
-              value={statusFilter || ""}
-              onValueChange={(value) => setStatusFilter(value || null)}
-            >
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
-                <SelectItem value="draft">Rascunho</SelectItem>
-                <SelectItem value="published">Publicado</SelectItem>
-                <SelectItem value="featured">Destaque</SelectItem>
-                <SelectItem value="archived">Arquivado</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Pesquisar..."
+                className="w-64 pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
             
-            <Select
-              value={categoryFilter || ""}
-              onValueChange={(value) => setCategoryFilter(value || null)}
-            >
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.slug}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {activeTab === "novels" && (
+              <select 
+                className="h-10 rounded-md border border-input bg-background px-3 py-2"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                <option value="">Todos os status</option>
+                <option value="draft">Rascunho</option>
+                <option value="published">Publicado</option>
+                <option value="featured">Destaque</option>
+                <option value="archived">Arquivado</option>
+              </select>
+            )}
           </div>
         </div>
         
         <TabsContent value="novels" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Novelas ({filteredNovels.length})</CardTitle>
-              <CardDescription>
-                Lista de todas as novelas disponíveis na plataforma.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Autor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Leituras</TableHead>
-                    <TableHead className="text-right">Vendas</TableHead>
-                    <TableHead>Atualização</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Novelas</h2>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <PlusCircle size={16} />
+                  <span>Nova Novela</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[550px]">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Nova Novela</DialogTitle>
+                  <DialogDescription>
+                    Preencha os detalhes da novela. Clique em salvar quando finalizar.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="title">Título</Label>
+                    <Input 
+                      id="title" 
+                      name="title" 
+                      value={novelForm.title} 
+                      onChange={handleNovelFormChange} 
+                      placeholder="Título da novela" 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="description">Descrição</Label>
+                    <textarea 
+                      id="description" 
+                      name="description" 
+                      value={novelForm.description} 
+                      onChange={handleNovelFormChange} 
+                      className="min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      placeholder="Descrição da novela" 
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="status">Status</Label>
+                      <select 
+                        id="status" 
+                        name="status" 
+                        value={novelForm.status} 
+                        onChange={handleNovelFormChange}
+                        className="h-10 rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      >
+                        <option value="draft">Rascunho</option>
+                        <option value="published">Publicado</option>
+                        <option value="featured">Destaque</option>
+                        <option value="archived">Arquivado</option>
+                      </select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="price">Preço</Label>
+                      <Input 
+                        id="price" 
+                        name="price" 
+                        type="number" 
+                        min="0" 
+                        step="0.01" 
+                        value={novelForm.price} 
+                        onChange={handleNovelFormChange} 
+                        placeholder="0.00" 
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="categories">Categorias</Label>
+                    <Input 
+                      id="categories" 
+                      name="categories" 
+                      value={novelForm.categories?.join(", ")} 
+                      onChange={handleNovelFormChange} 
+                      placeholder="Fantasia, Ação, Romance (separadas por vírgula)" 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="tags">Tags</Label>
+                    <Input 
+                      id="tags" 
+                      name="tags" 
+                      value={novelForm.tags?.join(", ")} 
+                      onChange={handleNovelFormChange} 
+                      placeholder="magia, aventura, medieval (separadas por vírgula)" 
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit" onClick={handleNovelSubmit}>Salvar</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+          
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Novela</TableHead>
+                <TableHead>Autor</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead>Capítulos</TableHead>
+                <TableHead>Leituras</TableHead>
+                <TableHead>Última Atualização</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredNovels.length > 0 ? (
+                filteredNovels.map((novel) => (
+                  <TableRow key={novel.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <img 
+                          src={novel.cover} 
+                          alt={novel.title} 
+                          className="w-10 h-14 object-cover rounded-sm" 
+                        />
+                        <span>{novel.title}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{novel.author.name}</TableCell>
+                    <TableCell>{getStatusBadge(novel.status)}</TableCell>
+                    <TableCell>
+                      {novel.price !== null ? `R$ ${novel.price.toFixed(2)}` : "Grátis"}
+                    </TableCell>
+                    <TableCell>{novel.chapters || 0}</TableCell>
+                    <TableCell>{novel.reads}</TableCell>
+                    <TableCell>{new Date(novel.updatedAt).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="icon" title="Visualizar">
+                          <Eye size={16} />
+                        </Button>
+                        <Button variant="outline" size="icon" title="Editar">
+                          <Edit size={16} />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          title="Excluir"
+                          onClick={() => handleDeleteNovel(novel.id)}
+                        >
+                          <Trash size={16} />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredNovels.length > 0 ? (
-                    filteredNovels.map((novel) => (
-                      <TableRow key={novel.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded overflow-hidden bg-muted">
-                              <img 
-                                src={novel.cover || "/placeholder.svg"} 
-                                alt={novel.title}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                            <span className="truncate max-w-[150px]">{novel.title}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{novel.author.name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={statusColors[novel.status]}>
-                            {getStatusIcon(novel.status)}
-                            {statusLabels[novel.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">{novel.reads}</TableCell>
-                        <TableCell className="text-right">{novel.purchases}</TableCell>
-                        <TableCell>
-                          {new Date(novel.updatedAt).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                className="flex items-center"
-                                onClick={() => openEditDialog(novel)}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="flex items-center text-destructive"
-                                onClick={() => openDeleteDialog(novel)}
-                              >
-                                <Trash className="mr-2 h-4 w-4" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                        Nenhuma novela encontrada.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="chapters" className="space-y-4">
-          <Card className="pt-6">
-            <CardContent className="flex flex-col items-center justify-center py-10">
-              <BookPlus className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Gerenciamento de Capítulos</h3>
-              <p className="text-muted-foreground text-center max-w-md mb-4">
-                Selecione uma novela para gerenciar seus capítulos, adicionar conteúdo
-                e controlar a publicação.
-              </p>
-              <Button>Selecionar Novela</Button>
-            </CardContent>
-          </Card>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    Nenhuma novela encontrada. Crie uma nova novela para começar.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </TabsContent>
         
         <TabsContent value="categories" className="space-y-4">
-          <Card className="pt-6">
-            <CardContent className="flex flex-col items-center justify-center py-10">
-              <Tag className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Gerenciamento de Categorias</h3>
-              <p className="text-muted-foreground text-center max-w-md mb-4">
-                Adicione, edite ou remova categorias para organizar as novelas
-                e melhorar a experiência de descoberta.
-              </p>
-              <Button>Gerenciar Categorias</Button>
-            </CardContent>
-          </Card>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Categorias</h2>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <PlusCircle size={16} />
+                  <span>Nova Categoria</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Nova Categoria</DialogTitle>
+                  <DialogDescription>
+                    Preencha os detalhes da categoria. Clique em salvar quando finalizar.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="category-name">Nome</Label>
+                    <Input 
+                      id="category-name" 
+                      name="name" 
+                      value={categoryForm.name} 
+                      onChange={handleCategoryFormChange} 
+                      placeholder="Nome da categoria" 
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="category-slug">Slug (opcional)</Label>
+                    <Input 
+                      id="category-slug" 
+                      name="slug" 
+                      value={categoryForm.slug} 
+                      onChange={handleCategoryFormChange} 
+                      placeholder="nome-da-categoria" 
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Deixe em branco para gerar automaticamente a partir do nome.
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="category-description">Descrição</Label>
+                    <textarea 
+                      id="category-description" 
+                      name="description" 
+                      value={categoryForm.description} 
+                      onChange={handleCategoryFormChange} 
+                      className="min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      placeholder="Descrição da categoria" 
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit" onClick={handleCategorySubmit}>Salvar</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+          
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Slug</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Quantidade de Novelas</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredCategories.length > 0 ? (
+                filteredCategories.map((category) => (
+                  <TableRow key={category.id}>
+                    <TableCell className="font-medium">{category.name}</TableCell>
+                    <TableCell>{category.slug}</TableCell>
+                    <TableCell>{category.description || "-"}</TableCell>
+                    <TableCell>{category.count}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="icon" title="Editar">
+                          <Edit size={16} />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          title="Excluir"
+                          onClick={() => handleDeleteCategory(category.id)}
+                        >
+                          <Trash size={16} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    Nenhuma categoria encontrada. Crie uma nova categoria para começar.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </TabsContent>
       </Tabs>
-      
-      {/* Nova Novela Dialog */}
-      <Dialog open={isNewNovelOpen} onOpenChange={setIsNewNovelOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Adicionar Nova Novela</DialogTitle>
-            <DialogDescription>
-              Preencha as informações abaixo para adicionar uma nova novela à plataforma.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="title" className="text-sm font-medium">
-                Título
-              </label>
-              <Input
-                id="title"
-                name="title"
-                value={newNovelForm.title}
-                onChange={handleInputChange}
-                placeholder="Título da novela"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="authorId" className="text-sm font-medium">
-                Autor
-              </label>
-              <Select
-                value={newNovelForm.authorId}
-                onValueChange={(value) => handleSelectChange("authorId", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um autor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {authors.map((author) => (
-                    <SelectItem key={author.id} value={author.id}>
-                      {author.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="status" className="text-sm font-medium">
-                Status
-              </label>
-              <Select
-                value={newNovelForm.status}
-                onValueChange={(value) => handleSelectChange("status", value as Novel['status'])}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Rascunho</SelectItem>
-                  <SelectItem value="published">Publicado</SelectItem>
-                  <SelectItem value="featured">Destaque</SelectItem>
-                  <SelectItem value="archived">Arquivado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="price" className="text-sm font-medium">
-                Preço (R$)
-              </label>
-              <Input
-                id="price"
-                name="price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={newNovelForm.price}
-                onChange={handleInputChange}
-                placeholder="0.00"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="description" className="text-sm font-medium">
-                Descrição
-              </label>
-              <Textarea
-                id="description"
-                name="description"
-                value={newNovelForm.description}
-                onChange={handleInputChange}
-                placeholder="Descrição da novela"
-                rows={4}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsNewNovelOpen(false);
-              resetForm();
-            }}>
-              Cancelar
-            </Button>
-            <Button onClick={handleAddNovel}>Adicionar Novela</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Editar Novela Dialog */}
-      <Dialog open={isEditNovelOpen} onOpenChange={setIsEditNovelOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Editar Novela</DialogTitle>
-            <DialogDescription>
-              Atualize as informações da novela.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="edit-title" className="text-sm font-medium">
-                Título
-              </label>
-              <Input
-                id="edit-title"
-                name="title"
-                value={newNovelForm.title}
-                onChange={handleInputChange}
-                placeholder="Título da novela"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="edit-authorId" className="text-sm font-medium">
-                Autor
-              </label>
-              <Select
-                value={newNovelForm.authorId}
-                onValueChange={(value) => handleSelectChange("authorId", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um autor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {authors.map((author) => (
-                    <SelectItem key={author.id} value={author.id}>
-                      {author.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="edit-status" className="text-sm font-medium">
-                Status
-              </label>
-              <Select
-                value={newNovelForm.status}
-                onValueChange={(value) => handleSelectChange("status", value as Novel['status'])}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Rascunho</SelectItem>
-                  <SelectItem value="published">Publicado</SelectItem>
-                  <SelectItem value="featured">Destaque</SelectItem>
-                  <SelectItem value="archived">Arquivado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="edit-price" className="text-sm font-medium">
-                Preço (R$)
-              </label>
-              <Input
-                id="edit-price"
-                name="price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={newNovelForm.price}
-                onChange={handleInputChange}
-                placeholder="0.00"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="edit-description" className="text-sm font-medium">
-                Descrição
-              </label>
-              <Textarea
-                id="edit-description"
-                name="description"
-                value={newNovelForm.description}
-                onChange={handleInputChange}
-                placeholder="Descrição da novela"
-                rows={4}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsEditNovelOpen(false);
-              setSelectedNovel(null);
-              resetForm();
-            }}>
-              Cancelar
-            </Button>
-            <Button onClick={handleEditNovel}>Salvar Alterações</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Confirmar Exclusão Dialog */}
-      <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Exclusão</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja excluir a novela "{selectedNovel?.title}"?
-              Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteNovel}>
-              Excluir
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

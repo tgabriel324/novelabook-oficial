@@ -1,17 +1,33 @@
 
-import React, { useState } from "react";
-import { useUsers, useActivityLogs } from "@/hooks/useAdminData";
+import { useState } from "react";
+import { 
+  Table, 
+  TableBody, 
+  TableCaption, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
+import { 
+  Search, 
+  Filter, 
+  Edit, 
+  Trash, 
+  Mail, 
+  Shield, 
+  User as UserIcon,
+  UserPlus,
+  BookOpen,
+  Clock,
+  Check,
+  X
+} from "lucide-react";
+import { useUsers } from "@/hooks/useAdminData";
+import { Badge } from "@/components/ui/badge";
+import { 
   Dialog,
   DialogContent,
   DialogDescription,
@@ -20,767 +36,306 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
 import { User } from "@/lib/data/types";
-import { 
-  Users as UsersIcon, 
-  User as UserIcon, 
-  UserPlus, 
-  Filter, 
-  Search, 
-  MoreVertical, 
-  Pencil, 
-  Trash, 
-  ShieldAlert, 
-  Mail, 
-  Key 
-} from "lucide-react";
 
-type StatusColors = {
-  [key in User['status']]: string;
-};
-
-const statusColors: StatusColors = {
-  active: "bg-green-100 text-green-800",
-  blocked: "bg-red-100 text-red-800",
-  pending: "bg-yellow-100 text-yellow-800",
-};
-
-const statusLabels = {
-  active: "Ativo",
-  blocked: "Bloqueado",
-  pending: "Pendente",
-};
-
-const roleLabels = {
-  user: "Usuário",
-  author: "Autor",
-  admin: "Administrador",
-};
-
-const UsersPage = () => {
+const Users = () => {
   const { users, addUser, updateUser, deleteUser } = useUsers();
-  const { addLog } = useActivityLogs();
-  
-  const [selectedTab, setSelectedTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
   
-  const [isNewUserOpen, setIsNewUserOpen] = useState(false);
-  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  
-  // Form State for New User
-  const [newUserForm, setNewUserForm] = useState({
+  // User form state
+  const [userForm, setUserForm] = useState<Partial<User>>({
     name: "",
     email: "",
-    role: "user" as User['role'],
-    status: "pending" as User['status'],
-    avatar: "",
+    role: "user",
+    status: "active"
   });
-  
-  // Filter users based on search and filters
+
+  // Filtered users based on search, role and status
   const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = !roleFilter || user.role === roleFilter;
-    const matchesStatus = !statusFilter || user.status === statusFilter;
-    const matchesTab = selectedTab === "all" || 
-                       (selectedTab === "recent" && new Date(user.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    return matchesSearch && matchesRole && matchesStatus && matchesTab;
+    const matchesRole = selectedRole ? user.role === selectedRole : true;
+    const matchesStatus = selectedStatus ? user.status === selectedStatus : true;
+    
+    return matchesSearch && matchesRole && matchesStatus;
   });
-  
-  // Reset form
-  const resetForm = () => {
-    setNewUserForm({
+
+  // Handle user form change
+  const handleUserFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setUserForm({ ...userForm, [name]: value });
+  };
+
+  // Submit new user
+  const handleUserSubmit = () => {
+    if (!userForm.name || !userForm.email) return;
+    
+    const newUser = {
+      ...userForm,
+      createdAt: new Date().toISOString(),
+      purchased: 0,
+      reads: 0
+    } as Omit<User, 'id'>;
+    
+    addUser(newUser);
+    
+    // Reset form
+    setUserForm({
       name: "",
       email: "",
       role: "user",
-      status: "pending",
-      avatar: "",
+      status: "active"
     });
   };
-  
-  // Handle form input change
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setNewUserForm({
-      ...newUserForm,
-      [name]: value,
-    });
+
+  // Delete a user
+  const handleDeleteUser = (id: string) => {
+    if (window.confirm("Tem certeza que deseja excluir este usuário?")) {
+      deleteUser(id);
+    }
   };
-  
-  // Handle form select change
-  const handleSelectChange = (name: string, value: string) => {
-    setNewUserForm({
-      ...newUserForm,
-      [name]: value,
-    });
+
+  // Update user status
+  const handleStatusChange = (id: string, status: User['status']) => {
+    updateUser(id, { status });
   };
-  
-  // Add new user
-  const handleAddUser = () => {
-    const userData = {
-      name: newUserForm.name,
-      email: newUserForm.email,
-      role: newUserForm.role,
-      status: newUserForm.status,
-      avatar: newUserForm.avatar || undefined,
-    };
-    
-    const fullUserData = {
-      ...userData,
-      createdAt: new Date().toISOString(),
-      purchased: 0,
-      reads: 0,
-    };
-    
-    addUser(fullUserData);
-    
-    addLog({
-      user: {
-        id: "admin",
-        name: "Administrador",
-      },
-      action: "Adicionou um novo usuário",
-      entity: {
-        type: "user",
-        id: "new",
-        name: newUserForm.name,
-      },
-      details: `Usuário "${newUserForm.name}" adicionado como ${roleLabels[newUserForm.role]}`,
-    });
-    
-    setIsNewUserOpen(false);
-    resetForm();
-    toast.success("Usuário adicionado com sucesso!");
+
+  // Get role badge
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return <Badge variant="secondary" className="bg-purple-500 hover:bg-purple-600">{role}</Badge>;
+      case 'author':
+        return <Badge variant="secondary" className="bg-blue-500 hover:bg-blue-600">{role}</Badge>;
+      case 'user':
+        return <Badge variant="outline">{role}</Badge>;
+      default:
+        return <Badge variant="outline">{role}</Badge>;
+    }
   };
-  
-  // Edit user
-  const handleEditUser = () => {
-    if (!selectedUser) return;
-    
-    const userData = {
-      name: newUserForm.name,
-      email: newUserForm.email,
-      role: newUserForm.role,
-      status: newUserForm.status,
-      avatar: newUserForm.avatar || undefined,
-    };
-    
-    updateUser(selectedUser.id, userData);
-    
-    addLog({
-      user: {
-        id: "admin",
-        name: "Administrador",
-      },
-      action: "Atualizou um usuário",
-      entity: {
-        type: "user",
-        id: selectedUser.id,
-        name: newUserForm.name,
-      },
-      details: `Usuário "${newUserForm.name}" atualizado com papel ${roleLabels[newUserForm.role]} e status ${statusLabels[newUserForm.status]}`,
-    });
-    
-    setIsEditUserOpen(false);
-    setSelectedUser(null);
-    resetForm();
-    toast.success("Usuário atualizado com sucesso!");
+
+  // Get status badge
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge variant="secondary" className="bg-green-500 hover:bg-green-600">{status}</Badge>;
+      case 'blocked':
+        return <Badge variant="secondary" className="bg-red-500 hover:bg-red-600">{status}</Badge>;
+      case 'pending':
+        return <Badge variant="secondary" className="bg-yellow-500 hover:bg-yellow-600">{status}</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
-  
-  // Delete user
-  const handleDeleteUser = () => {
-    if (!selectedUser) return;
-    
-    deleteUser(selectedUser.id);
-    
-    addLog({
-      user: {
-        id: "admin",
-        name: "Administrador",
-      },
-      action: "Removeu um usuário",
-      entity: {
-        type: "user",
-        id: selectedUser.id,
-        name: selectedUser.name,
-      },
-      details: `Usuário "${selectedUser.name}" removido do sistema`,
-    });
-    
-    setIsDeleteConfirmOpen(false);
-    setSelectedUser(null);
-    toast.success("Usuário excluído com sucesso!");
-  };
-  
-  // Open edit dialog
-  const openEditDialog = (user: User) => {
-    setSelectedUser(user);
-    setNewUserForm({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      avatar: user.avatar || "",
-    });
-    setIsEditUserOpen(true);
-  };
-  
-  // Open delete confirm dialog
-  const openDeleteDialog = (user: User) => {
-    setSelectedUser(user);
-    setIsDeleteConfirmOpen(true);
-  };
-  
-  // Get initials for avatar
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
-  
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Usuários</h1>
-          <p className="text-muted-foreground">
-            Gerencie usuários, autores e administradores.
-          </p>
-        </div>
-        <Button onClick={() => setIsNewUserOpen(true)}>
-          <UserPlus className="mr-2 h-4 w-4" /> Novo Usuário
-        </Button>
-      </div>
+    <div className="container mx-auto">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold">Administração de Usuários</h1>
+        <p className="text-muted-foreground">Gerencie usuários, autores e administradores da plataforma.</p>
+      </header>
       
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full md:w-auto grid-cols-2">
-          <TabsTrigger value="all" className="flex items-center">
-            <UsersIcon className="h-4 w-4 mr-2" /> Todos os Usuários
-          </TabsTrigger>
-          <TabsTrigger value="recent" className="flex items-center">
-            <UserPlus className="h-4 w-4 mr-2" /> Registros Recentes
-          </TabsTrigger>
-        </TabsList>
-        
-        <div className="mt-4 mb-6 flex flex-col sm:flex-row gap-4">
-          <div className="relative w-full sm:w-1/3">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nome ou email..."
-              className="pl-8"
+              type="search"
+              placeholder="Buscar usuários..."
+              className="w-80 pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           
-          <div className="flex gap-2 items-center">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select
-              value={roleFilter || ""}
-              onValueChange={(value) => setRoleFilter(value || null)}
-            >
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Função" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
-                <SelectItem value="user">Usuário</SelectItem>
-                <SelectItem value="author">Autor</SelectItem>
-                <SelectItem value="admin">Administrador</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select
-              value={statusFilter || ""}
-              onValueChange={(value) => setStatusFilter(value || null)}
-            >
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
-                <SelectItem value="active">Ativo</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="blocked">Bloqueado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <select 
+            className="h-10 rounded-md border border-input bg-background px-3 py-2"
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+          >
+            <option value="">Todos os papéis</option>
+            <option value="user">Usuário</option>
+            <option value="author">Autor</option>
+            <option value="admin">Administrador</option>
+          </select>
+          
+          <select 
+            className="h-10 rounded-md border border-input bg-background px-3 py-2"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
+            <option value="">Todos os status</option>
+            <option value="active">Ativo</option>
+            <option value="blocked">Bloqueado</option>
+            <option value="pending">Pendente</option>
+          </select>
         </div>
         
-        <TabsContent value="all" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Todos os Usuários ({filteredUsers.length})</CardTitle>
-              <CardDescription>
-                Lista completa de todos os usuários registrados na plataforma.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Função</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Cadastro</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={user.avatar} alt={user.name} />
-                              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                            </Avatar>
-                            <span>{user.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={
-                            user.role === 'admin' 
-                              ? 'bg-purple-100 text-purple-800' 
-                              : user.role === 'author' 
-                              ? 'bg-blue-100 text-blue-800' 
-                              : 'bg-gray-100'
-                          }>
-                            {user.role === 'admin' && <ShieldAlert className="h-3 w-3 mr-1" />}
-                            {roleLabels[user.role]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={statusColors[user.status]}>
-                            {statusLabels[user.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(user.createdAt).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem 
-                                className="flex items-center"
-                                onClick={() => openEditDialog(user)}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center">
-                                <Mail className="mr-2 h-4 w-4" />
-                                Enviar mensagem
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center">
-                                <Key className="mr-2 h-4 w-4" />
-                                Redefinir senha
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="flex items-center text-destructive"
-                                onClick={() => openDeleteDialog(user)}
-                              >
-                                <Trash className="mr-2 h-4 w-4" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                        Nenhum usuário encontrado.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="recent" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Registros Recentes</CardTitle>
-              <CardDescription>
-                Usuários que se cadastraram nos últimos 7 dias.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-            <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Função</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Cadastro</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={user.avatar} alt={user.name} />
-                              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                            </Avatar>
-                            <span>{user.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={
-                            user.role === 'admin' 
-                              ? 'bg-purple-100 text-purple-800' 
-                              : user.role === 'author' 
-                              ? 'bg-blue-100 text-blue-800' 
-                              : 'bg-gray-100'
-                          }>
-                            {user.role === 'admin' && <ShieldAlert className="h-3 w-3 mr-1" />}
-                            {roleLabels[user.role]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={statusColors[user.status]}>
-                            {statusLabels[user.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(user.createdAt).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem 
-                                className="flex items-center"
-                                onClick={() => openEditDialog(user)}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center">
-                                <Mail className="mr-2 h-4 w-4" />
-                                Enviar mensagem
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center">
-                                <Key className="mr-2 h-4 w-4" />
-                                Redefinir senha
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="flex items-center text-destructive"
-                                onClick={() => openDeleteDialog(user)}
-                              >
-                                <Trash className="mr-2 h-4 w-4" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                        Nenhum registro recente encontrado.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <UserPlus size={16} />
+              <span>Novo Usuário</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Adicionar Novo Usuário</DialogTitle>
+              <DialogDescription>
+                Preencha os detalhes do usuário. Um email será enviado para o novo usuário.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Nome</Label>
+                <Input 
+                  id="name" 
+                  name="name" 
+                  value={userForm.name} 
+                  onChange={handleUserFormChange} 
+                  placeholder="Nome completo" 
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email" 
+                  name="email" 
+                  type="email" 
+                  value={userForm.email} 
+                  onChange={handleUserFormChange} 
+                  placeholder="email@exemplo.com" 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="role">Papel</Label>
+                  <select 
+                    id="role" 
+                    name="role" 
+                    value={userForm.role} 
+                    onChange={handleUserFormChange}
+                    className="h-10 rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                  >
+                    <option value="user">Usuário</option>
+                    <option value="author">Autor</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="status">Status</Label>
+                  <select 
+                    id="status" 
+                    name="status" 
+                    value={userForm.status} 
+                    onChange={handleUserFormChange}
+                    className="h-10 rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                  >
+                    <option value="active">Ativo</option>
+                    <option value="blocked">Bloqueado</option>
+                    <option value="pending">Pendente</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" onClick={handleUserSubmit}>Adicionar Usuário</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
       
-      {/* Novo Usuário Dialog */}
-      <Dialog open={isNewUserOpen} onOpenChange={setIsNewUserOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Adicionar Novo Usuário</DialogTitle>
-            <DialogDescription>
-              Preencha as informações abaixo para adicionar um novo usuário à plataforma.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Nome
-              </label>
-              <Input
-                id="name"
-                name="name"
-                value={newUserForm.name}
-                onChange={handleInputChange}
-                placeholder="Nome completo"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={newUserForm.email}
-                onChange={handleInputChange}
-                placeholder="usuario@exemplo.com"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="role" className="text-sm font-medium">
-                Função
-              </label>
-              <Select
-                value={newUserForm.role}
-                onValueChange={(value) => handleSelectChange("role", value as User['role'])}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma função" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">Usuário</SelectItem>
-                  <SelectItem value="author">Autor</SelectItem>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="status" className="text-sm font-medium">
-                Status
-              </label>
-              <Select
-                value={newUserForm.status}
-                onValueChange={(value) => handleSelectChange("status", value as User['status'])}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Ativo</SelectItem>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="blocked">Bloqueado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="avatar" className="text-sm font-medium">
-                URL do Avatar (opcional)
-              </label>
-              <Input
-                id="avatar"
-                name="avatar"
-                value={newUserForm.avatar}
-                onChange={handleInputChange}
-                placeholder="https://exemplo.com/avatar.jpg"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsNewUserOpen(false);
-              resetForm();
-            }}>
-              Cancelar
-            </Button>
-            <Button onClick={handleAddUser}>Adicionar Usuário</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Editar Usuário Dialog */}
-      <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Editar Usuário</DialogTitle>
-            <DialogDescription>
-              Atualize as informações do usuário.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="edit-name" className="text-sm font-medium">
-                Nome
-              </label>
-              <Input
-                id="edit-name"
-                name="name"
-                value={newUserForm.name}
-                onChange={handleInputChange}
-                placeholder="Nome completo"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="edit-email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="edit-email"
-                name="email"
-                type="email"
-                value={newUserForm.email}
-                onChange={handleInputChange}
-                placeholder="usuario@exemplo.com"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="edit-role" className="text-sm font-medium">
-                Função
-              </label>
-              <Select
-                value={newUserForm.role}
-                onValueChange={(value) => handleSelectChange("role", value as User['role'])}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma função" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">Usuário</SelectItem>
-                  <SelectItem value="author">Autor</SelectItem>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="edit-status" className="text-sm font-medium">
-                Status
-              </label>
-              <Select
-                value={newUserForm.status}
-                onValueChange={(value) => handleSelectChange("status", value as User['status'])}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Ativo</SelectItem>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="blocked">Bloqueado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid gap-2">
-              <label htmlFor="edit-avatar" className="text-sm font-medium">
-                URL do Avatar (opcional)
-              </label>
-              <Input
-                id="edit-avatar"
-                name="avatar"
-                value={newUserForm.avatar}
-                onChange={handleInputChange}
-                placeholder="https://exemplo.com/avatar.jpg"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsEditUserOpen(false);
-              setSelectedUser(null);
-              resetForm();
-            }}>
-              Cancelar
-            </Button>
-            <Button onClick={handleEditUser}>Salvar Alterações</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Confirmar Exclusão Dialog */}
-      <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Exclusão</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja excluir o usuário "{selectedUser?.name}"?
-              Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteUser}>
-              Excluir
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Usuário</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Papel</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Data de Registro</TableHead>
+            <TableHead>Último Login</TableHead>
+            <TableHead>Leituras</TableHead>
+            <TableHead>Compras</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                      {user.avatar ? (
+                        <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
+                      ) : (
+                        <UserIcon size={16} className="text-muted-foreground" />
+                      )}
+                    </div>
+                    <span>{user.name}</span>
+                  </div>
+                </TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{getRoleBadge(user.role)}</TableCell>
+                <TableCell>{getStatusBadge(user.status)}</TableCell>
+                <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell>{user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : "-"}</TableCell>
+                <TableCell>{user.reads || 0}</TableCell>
+                <TableCell>{user.purchased || 0}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    {user.status === "active" ? (
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        title="Bloquear" 
+                        onClick={() => handleStatusChange(user.id, "blocked")}
+                      >
+                        <X size={16} className="text-red-500" />
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        title="Ativar" 
+                        onClick={() => handleStatusChange(user.id, "active")}
+                      >
+                        <Check size={16} className="text-green-500" />
+                      </Button>
+                    )}
+                    <Button variant="outline" size="icon" title="Enviar Email">
+                      <Mail size={16} />
+                    </Button>
+                    <Button variant="outline" size="icon" title="Editar">
+                      <Edit size={16} />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      title="Excluir"
+                      onClick={() => handleDeleteUser(user.id)}
+                    >
+                      <Trash size={16} />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                Nenhum usuário encontrado com os filtros selecionados.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 };
 
-export default UsersPage;
+export default Users;
