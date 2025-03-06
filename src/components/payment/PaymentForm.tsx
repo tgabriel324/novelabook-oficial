@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { PaymentMethod, CardDetails, PurchaseReceipt } from "@/lib/data/paymentTypes";
 import { Novel } from "@/lib/data/types";
 import PurchaseReceiptComponent from "./PurchaseReceipt";
+import StripeProvider from "./stripe/StripeProvider";
+import StripePaymentForm from "./stripe/StripePaymentForm";
 
 interface PaymentFormProps {
   novel: Novel;
@@ -39,7 +41,7 @@ const PaymentForm = ({ novel, onPaymentComplete }: PaymentFormProps) => {
   const handlePayment = async () => {
     setIsProcessing(true);
 
-    // Simulação de processamento de pagamento
+    // Simulação de processamento de pagamento para métodos não-Stripe
     setTimeout(() => {
       const success = Math.random() > 0.2; // 80% de chance de sucesso para simular
       
@@ -66,6 +68,15 @@ const PaymentForm = ({ novel, onPaymentComplete }: PaymentFormProps) => {
       
       setIsProcessing(false);
     }, 2000);
+  };
+
+  const handleStripeSuccess = (receipt: PurchaseReceipt) => {
+    setReceipt(receipt);
+    setShowReceipt(true);
+  };
+
+  const handleStripeError = () => {
+    onPaymentComplete(false);
   };
 
   const handleReceiptClose = () => {
@@ -103,58 +114,13 @@ const PaymentForm = ({ novel, onPaymentComplete }: PaymentFormProps) => {
           </TabsList>
           
           <TabsContent value="card" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="card-number">Número do Cartão</Label>
-              <Input 
-                id="card-number" 
-                placeholder="1234 5678 9012 3456"
-                value={cardDetails.cardNumber}
-                onChange={handleCardDetailsChange('cardNumber')} 
+            <StripeProvider>
+              <StripePaymentForm 
+                novel={novel} 
+                onSuccess={handleStripeSuccess} 
+                onError={handleStripeError} 
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="card-holder">Nome no Cartão</Label>
-              <Input 
-                id="card-holder" 
-                placeholder="NOME COMO ESTÁ NO CARTÃO"
-                value={cardDetails.cardHolder}
-                onChange={handleCardDetailsChange('cardHolder')} 
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="expiry">Validade</Label>
-                <Input 
-                  id="expiry" 
-                  placeholder="MM/AA"
-                  value={cardDetails.expiryDate}
-                  onChange={handleCardDetailsChange('expiryDate')} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cvv">CVV</Label>
-                <Input 
-                  id="cvv" 
-                  placeholder="123"
-                  value={cardDetails.cvv}
-                  onChange={handleCardDetailsChange('cvv')} 
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Tipo de Cartão</Label>
-              <RadioGroup defaultValue="credit" className="flex gap-6">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="credit" id="credit" onClick={() => setPaymentMethod('credit_card')} />
-                  <Label htmlFor="credit">Crédito</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="debit" id="debit" onClick={() => setPaymentMethod('debit_card')} />
-                  <Label htmlFor="debit">Débito</Label>
-                </div>
-              </RadioGroup>
-            </div>
+            </StripeProvider>
           </TabsContent>
           
           <TabsContent value="pix">
@@ -189,15 +155,17 @@ const PaymentForm = ({ novel, onPaymentComplete }: PaymentFormProps) => {
           </TabsContent>
         </Tabs>
       </CardContent>
-      <CardFooter>
-        <Button 
-          className="w-full" 
-          disabled={isProcessing}
-          onClick={handlePayment}
-        >
-          {isProcessing ? "Processando..." : `Pagar ${novel.price?.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}`}
-        </Button>
-      </CardFooter>
+      {paymentMethod !== 'credit_card' && (
+        <CardFooter>
+          <Button 
+            className="w-full" 
+            disabled={isProcessing}
+            onClick={handlePayment}
+          >
+            {isProcessing ? "Processando..." : `Pagar ${novel.price?.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}`}
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 };

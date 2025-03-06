@@ -8,6 +8,7 @@ import AuthCheck from "@/components/layout/AuthCheck";
 import ClientLayout from "@/components/layout/ClientLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
 import SeoMetaTags from "@/components/seo/SeoMetaTags";
+import StripeProvider from "@/components/payment/stripe/StripeProvider";
 
 // Admin Pages
 import Dashboard from "@/pages/admin/Dashboard";
@@ -51,65 +52,68 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          {/* Auth Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
+        {/* Wrapping the app with Stripe Provider */}
+        <StripeProvider>
+          <Routes>
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* Client Routes */}
-          <Route element={
-            <AuthCheck allowedRoles={['user']}>
-              <ClientLayout />
-            </AuthCheck>
-          }>
-            <Route path="/" element={<Discover />} />
-            <Route path="/biblioteca" element={<Library />} />
-            <Route path="/loja" element={<Store />} />
-            <Route path="/perfil" element={<Profile />} />
-            <Route path="/comunidade" element={<Community />} />
-            <Route path="/suporte" element={<Support />} />
-            <Route path="/documentacao" element={<Documentation />} />
-            <Route path="/livro/:id" element={<BookDetails />} />
-            
-            {/* Rotas de perfil */}
-            <Route path="/perfil/editar" element={<EditProfile />} />
-            <Route path="/perfil/compras" element={<PurchaseHistory />} />
-            <Route path="/perfil/favoritos" element={<Favorites />} />
-            <Route path="/perfil/preferencias" element={<Preferences />} />
-            <Route path="/perfil/seguranca" element={<SecuritySettings />} />
-            <Route path="/termos-de-servico" element={<TermsOfService />} />
-            <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
-          </Route>
+            {/* Client Routes */}
+            <Route element={
+              <AuthCheck allowedRoles={['user']}>
+                <ClientLayout />
+              </AuthCheck>
+            }>
+              <Route path="/" element={<Discover />} />
+              <Route path="/biblioteca" element={<Library />} />
+              <Route path="/loja" element={<Store />} />
+              <Route path="/perfil" element={<Profile />} />
+              <Route path="/comunidade" element={<Community />} />
+              <Route path="/suporte" element={<Support />} />
+              <Route path="/documentacao" element={<Documentation />} />
+              <Route path="/livro/:id" element={<BookDetails />} />
+              
+              {/* Rotas de perfil */}
+              <Route path="/perfil/editar" element={<EditProfile />} />
+              <Route path="/perfil/compras" element={<PurchaseHistory />} />
+              <Route path="/perfil/favoritos" element={<Favorites />} />
+              <Route path="/perfil/preferencias" element={<Preferences />} />
+              <Route path="/perfil/seguranca" element={<SecuritySettings />} />
+              <Route path="/termos-de-servico" element={<TermsOfService />} />
+              <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
+            </Route>
 
-          {/* Reader Route - Standalone without bottom navigation */}
-          <Route path="/leitor" element={
-            <AuthCheck allowedRoles={['user']}>
-              <Reader />
-            </AuthCheck>
-          } />
+            {/* Reader Route - Standalone without bottom navigation */}
+            <Route path="/leitor" element={
+              <AuthCheck allowedRoles={['user']}>
+                <Reader />
+              </AuthCheck>
+            } />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={
-            <AuthCheck allowedRoles={['admin']}>
-              <AdminLayout />
-            </AuthCheck>
-          }>
-            <Route index element={<Dashboard />} />
-            <Route path="conteudo" element={<div>Gerenciamento de Conteúdo</div>} /> {/* Placeholder */}
-            <Route path="usuarios" element={<div>Administração de Usuários</div>} /> {/* Placeholder */}
-            <Route path="relatorios" element={<div>Relatórios</div>} /> {/* Placeholder */}
-            <Route path="comunicacoes" element={<div>Comunicações</div>} /> {/* Placeholder */}
-            <Route path="configuracoes" element={<div>Configurações</div>} /> {/* Placeholder */}
-            
-            {/* Novas rotas de análise */}
-            <Route path="analytics/leitura" element={<ReadingAnalytics />} />
-            <Route path="performance" element={<PerformanceOptimizer />} />
-            <Route path="compatibilidade" element={<CompatibilityTester />} />
-          </Route>
+            {/* Admin Routes */}
+            <Route path="/admin" element={
+              <AuthCheck allowedRoles={['admin']}>
+                <AdminLayout />
+              </AuthCheck>
+            }>
+              <Route index element={<Dashboard />} />
+              <Route path="conteudo" element={<div>Gerenciamento de Conteúdo</div>} /> {/* Placeholder */}
+              <Route path="usuarios" element={<div>Administração de Usuários</div>} /> {/* Placeholder */}
+              <Route path="relatorios" element={<div>Relatórios</div>} /> {/* Placeholder */}
+              <Route path="comunicacoes" element={<div>Comunicações</div>} /> {/* Placeholder */}
+              <Route path="configuracoes" element={<div>Configurações</div>} /> {/* Placeholder */}
+              
+              {/* Novas rotas de análise */}
+              <Route path="analytics/leitura" element={<ReadingAnalytics />} />
+              <Route path="performance" element={<PerformanceOptimizer />} />
+              <Route path="compatibilidade" element={<CompatibilityTester />} />
+            </Route>
 
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </StripeProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
