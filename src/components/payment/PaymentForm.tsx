@@ -1,18 +1,16 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Banknote, QrCode } from "lucide-react";
 import { toast } from "sonner";
-import { PaymentMethod, CardDetails, PurchaseReceipt } from "@/lib/data/paymentTypes";
+import { PaymentMethod, PurchaseReceipt } from "@/lib/data/paymentTypes";
 import { Novel } from "@/lib/data/types";
 import PurchaseReceiptComponent from "./PurchaseReceipt";
 import StripeProvider from "./stripe/StripeProvider";
 import StripePaymentForm from "./stripe/StripePaymentForm";
+import PixPaymentForm from "./pix/PixPaymentForm";
+import BoletoPaymentForm from "./boleto/BoletoPaymentForm";
 
 interface PaymentFormProps {
   novel: Novel;
@@ -21,22 +19,9 @@ interface PaymentFormProps {
 
 const PaymentForm = ({ novel, onPaymentComplete }: PaymentFormProps) => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit_card');
-  const [cardDetails, setCardDetails] = useState<CardDetails>({
-    cardNumber: '',
-    cardHolder: '',
-    expiryDate: '',
-    cvv: ''
-  });
   const [isProcessing, setIsProcessing] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receipt, setReceipt] = useState<PurchaseReceipt | null>(null);
-
-  const handleCardDetailsChange = (field: keyof CardDetails) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCardDetails(prev => ({
-      ...prev,
-      [field]: e.target.value
-    }));
-  };
 
   const handlePayment = async () => {
     setIsProcessing(true);
@@ -124,48 +109,22 @@ const PaymentForm = ({ novel, onPaymentComplete }: PaymentFormProps) => {
           </TabsContent>
           
           <TabsContent value="pix">
-            <div className="flex flex-col items-center justify-center py-6">
-              <div className="bg-gray-200 p-6 rounded-lg mb-4">
-                <QrCode size={150} className="text-primary" />
-              </div>
-              <p className="text-center text-sm text-muted-foreground">
-                Escaneie o QR Code com seu aplicativo de banco para pagar via Pix.
-                <br />
-                O pagamento será confirmado automaticamente.
-              </p>
-            </div>
+            <PixPaymentForm 
+              amount={novel.price || 0} 
+              onSubmit={handlePayment} 
+              isProcessing={isProcessing} 
+            />
           </TabsContent>
           
           <TabsContent value="boleto">
-            <div className="flex flex-col items-center py-6">
-              <Banknote size={64} className="text-primary mb-4" />
-              <Button 
-                variant="outline" 
-                className="mb-4"
-                onClick={() => toast.success("Boleto gerado e copiado para a área de transferência!")}
-              >
-                Gerar e Copiar Código de Barras
-              </Button>
-              <p className="text-center text-sm text-muted-foreground">
-                Pague este boleto em qualquer banco ou casa lotérica.
-                <br />
-                O pagamento pode levar até 3 dias úteis para ser confirmado.
-              </p>
-            </div>
+            <BoletoPaymentForm 
+              amount={novel.price || 0} 
+              onSubmit={handlePayment} 
+              isProcessing={isProcessing}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>
-      {paymentMethod !== 'credit_card' && (
-        <CardFooter>
-          <Button 
-            className="w-full" 
-            disabled={isProcessing}
-            onClick={handlePayment}
-          >
-            {isProcessing ? "Processando..." : `Pagar ${novel.price?.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}`}
-          </Button>
-        </CardFooter>
-      )}
     </Card>
   );
 };
