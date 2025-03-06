@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTransactionAdmin } from '@/hooks/useTransactionAdmin';
 import { Transaction, Dispute, Refund, BankReconciliation } from '@/lib/data/paymentTypes';
@@ -17,7 +16,6 @@ import DisputeResponseDialog from "./DisputeResponseDialog";
 import BankReconciliationDialog from "./BankReconciliationDialog";
 import ComparativeAnalysisChart from "./ComparativeAnalysisChart";
 
-// Transaction Dashboard component
 const TransactionDashboard: React.FC = () => {
   const {
     transactions,
@@ -36,14 +34,12 @@ const TransactionDashboard: React.FC = () => {
     compareTransactions
   } = useTransactionAdmin();
 
-  // State for dialogs
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
   const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
   const [reconciliationDialogOpen, setReconciliationDialogOpen] = useState(false);
 
-  // State for filters
   const [filters, setFilters] = useState({
     status: '',
     paymentMethod: '',
@@ -54,7 +50,6 @@ const TransactionDashboard: React.FC = () => {
     maxAmount: undefined as number | undefined
   });
 
-  // Apply filters to get filtered transactions
   const filteredTransactions = filterTransactions({
     status: filters.status as any,
     paymentMethod: filters.paymentMethod as any,
@@ -65,7 +60,6 @@ const TransactionDashboard: React.FC = () => {
     maxAmount: filters.maxAmount
   });
 
-  // State for analysis periods
   const [analysisPeriods, setAnalysisPeriods] = useState({
     currentStart: format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     currentEnd: format(new Date(), 'yyyy-MM-dd'),
@@ -73,7 +67,6 @@ const TransactionDashboard: React.FC = () => {
     previousEnd: format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
   });
 
-  // Generate analysis data
   const analysisData = compareTransactions({
     periodStart: analysisPeriods.currentStart,
     periodEnd: analysisPeriods.currentEnd,
@@ -81,7 +74,6 @@ const TransactionDashboard: React.FC = () => {
     previousPeriodEnd: analysisPeriods.previousEnd
   });
 
-  // Transaction status badge color
   const getStatusColor = (status: Transaction['status']) => {
     switch(status) {
       case 'completed': return 'bg-green-500';
@@ -95,12 +87,10 @@ const TransactionDashboard: React.FC = () => {
     }
   };
 
-  // Handle filter changes
   const handleFilterChange = (key: string, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  // Handle file upload for bank reconciliation
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -108,13 +98,11 @@ const TransactionDashboard: React.FC = () => {
     }
   };
 
-  // Handle opening refund dialog
   const handleOpenRefundDialog = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setRefundDialogOpen(true);
   };
 
-  // Handle opening dispute dialog
   const handleOpenDisputeDialog = (dispute: Dispute) => {
     setSelectedDispute(dispute);
     setDisputeDialogOpen(true);
@@ -258,7 +246,6 @@ const TransactionDashboard: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Filter row */}
               <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
                 <div>
                   <label className="block text-sm mb-1">Status</label>
@@ -329,7 +316,6 @@ const TransactionDashboard: React.FC = () => {
                 </div>
               </div>
               
-              {/* Transactions table */}
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -662,7 +648,6 @@ const TransactionDashboard: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog Components */}
       {selectedTransaction && refundDialogOpen && (
         <RefundDialog 
           transaction={selectedTransaction}
@@ -700,13 +685,10 @@ const TransactionDashboard: React.FC = () => {
           reconciliations={reconciliations}
           onImportFile={handleFileUpload}
           onReconcile={(reconciliationId, transactionId) => {
-            reconcileManually(
-              {
-                reconciliationId,
-                transactionId
-              },
-              transactions
-            );
+            reconcileManually({
+              reconciliationId,
+              transactionId
+            });
             setReconciliationDialogOpen(false);
           }}
           onClose={() => setReconciliationDialogOpen(false)}

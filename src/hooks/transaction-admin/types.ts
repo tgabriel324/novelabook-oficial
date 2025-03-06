@@ -18,6 +18,22 @@ export interface TransactionFilters {
   searchTerm?: string;
 }
 
+export interface RefundFilters {
+  status?: Refund['status'];
+  fromDate?: string;
+  toDate?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  searchTerm?: string;
+}
+
+export interface DisputeFilters {
+  status?: Dispute['status'];
+  fromDate?: string;
+  toDate?: string;
+  searchTerm?: string;
+}
+
 export interface RefundRequest {
   transactionId: string;
   amount: number;
