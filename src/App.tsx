@@ -17,6 +17,7 @@ import PerformanceOptimizer from "@/components/admin/PerformanceOptimizer";
 import CompatibilityTester from "@/components/admin/CompatibilityTester";
 import TransactionDashboard from "@/components/admin/TransactionDashboard";
 import DiscountManagement from "@/pages/admin/DiscountManagement";
+import ContentManagement from "@/pages/admin/ContentManagement";
 
 // Client Pages
 import Discover from "@/pages/client/Discover";
@@ -98,11 +99,11 @@ const App = () => (
               <Route index element={<Dashboard />} />
               <Route path="transactions" element={<TransactionDashboard />} />
               <Route path="descontos" element={<DiscountManagement />} />
-              <Route path="conteudo" element={<div>Gerenciamento de Conteúdo</div>} /> {/* Placeholder */}
-              <Route path="usuarios" element={<div>Administração de Usuários</div>} /> {/* Placeholder */}
-              <Route path="relatorios" element={<div>Relatórios</div>} /> {/* Placeholder */}
-              <Route path="comunicacoes" element={<div>Comunicações</div>} /> {/* Placeholder */}
-              <Route path="configuracoes" element={<div>Configurações</div>} /> {/* Placeholder */}
+              <Route path="conteudo" element={<ContentManagement />} />
+              <Route path="usuarios" element={<div>Administração de Usuários</div>} />
+              <Route path="relatorios" element={<div>Relatórios</div>} />
+              <Route path="comunicacoes" element={<div>Comunicações</div>} />
+              <Route path="configuracoes" element={<div>Configurações</div>} />
               
               {/* Rotas de análise */}
               <Route path="analytics/leitura" element={<ReadingAnalytics />} />
