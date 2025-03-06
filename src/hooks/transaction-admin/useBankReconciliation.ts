@@ -58,14 +58,15 @@ export const useBankReconciliation = ({
     const matchedTransaction = transactions.find(t => t.id === transactionId);
     
     if (matchedTransaction) {
-      // Update the reconciliation record
+      // Update the reconciliation record with the correct status value
       setReconciliations(prev => 
         prev.map(r => 
           r.id === reconciliationId 
             ? {
                 ...r,
                 transactionId,
-                status: r.bankAmount === matchedTransaction.amount ? "matched" : "discrepancy",
+                // Use "partial_match" instead of "discrepancy" when amounts don't match
+                status: Math.abs(r.bankAmount - matchedTransaction.amount) < 0.01 ? "matched" : "partial_match",
                 systemAmount: matchedTransaction.amount,
                 updatedAt: new Date().toISOString()
               } 
