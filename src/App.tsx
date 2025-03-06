@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -92,7 +93,7 @@ const App = () => (
             } />
 
             {/* Admin Routes */}
-            <Route path="/admin" element={<AuthCheck><AdminLayout /></AuthCheck>}>
+            <Route path="/admin" element={<AuthCheck allowedRoles={['admin']}><AdminLayout /></AuthCheck>}>
               <Route index element={<Dashboard />} />
               <Route path="transactions" element={<TransactionDashboard />} />
               <Route path="conteudo" element={<div>Gerenciamento de Conteúdo</div>} /> {/* Placeholder */}
