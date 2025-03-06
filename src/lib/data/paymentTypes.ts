@@ -1,3 +1,4 @@
+
 export type PaymentMethod = 'credit_card' | 'debit_card' | 'pix' | 'boleto';
 
 export interface PaymentDetails {
@@ -82,4 +83,32 @@ export interface OfflineContent {
   coverImage: string;
   downloadedAt: string;
   expiresAt: string;
+}
+
+// Tipos de eventos de webhook para pagamentos
+export type StripeWebhookEvent = 
+  | 'payment_intent.created'
+  | 'payment_intent.succeeded'
+  | 'payment_intent.payment_failed'
+  | 'payment_intent.canceled'
+  | 'setup_intent.succeeded'
+  | 'setup_intent.failed';
+
+export type PixWebhookEvent =
+  | 'pix.created'
+  | 'pix.received'
+  | 'pix.expired';
+
+export type BoletoWebhookEvent =
+  | 'boleto.generated'
+  | 'boleto.paid'
+  | 'boleto.expired';
+
+export interface WebhookPayload {
+  id: string;
+  type: StripeWebhookEvent | PixWebhookEvent | BoletoWebhookEvent;
+  data: {
+    object: any;
+  };
+  created: number;
 }
