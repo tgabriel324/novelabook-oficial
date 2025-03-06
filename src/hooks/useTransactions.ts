@@ -1,525 +1,286 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { 
-  Transaction, 
-  Refund, 
-  Dispute, 
-  BankReconciliation,
-  PaymentMethod
-} from '@/lib/data/paymentTypes';
 
-// Dados fictícios para demonstração
-const mockTransactions: Transaction[] = [
-  {
-    id: "tx_123456",
-    userId: "user_1",
-    amount: 19.90,
-    currency: "BRL",
-    paymentMethod: "credit_card",
-    status: "completed",
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    novelId: "1"
-  },
-  {
-    id: "tx_234567",
-    userId: "user_2",
-    amount: 15.90,
-    currency: "BRL",
-    paymentMethod: "pix",
-    status: "completed",
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    novelId: "2"
-  },
-  {
-    id: "tx_345678",
-    userId: "user_3",
-    amount: 22.90,
-    currency: "BRL",
-    paymentMethod: "boleto",
-    status: "pending",
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    novelId: "3"
-  },
-  {
-    id: "tx_456789",
-    userId: "user_4",
-    amount: 12.90,
-    currency: "BRL",
-    paymentMethod: "credit_card",
-    status: "refunded",
-    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    novelId: "4",
-    refundId: "ref_123"
-  },
-  {
-    id: "tx_567890",
-    userId: "user_5",
-    amount: 17.90,
-    currency: "BRL",
-    paymentMethod: "credit_card",
-    status: "disputed",
-    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString(),
-    novelId: "5"
-  }
-];
+import { useState, useEffect } from 'react';
+import { PaymentDetails, Transaction, PaymentMethod } from '@/lib/data/paymentTypes';
 
-const mockRefunds: Refund[] = [
-  {
-    id: "ref_123",
-    transactionId: "tx_456789",
-    userId: "user_4",
-    amount: 12.90,
-    currency: "BRL",
-    reason: "Cliente desistiu da compra",
-    status: "completed",
-    createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    processedById: "admin_1"
-  }
-];
-
-const mockDisputes: Dispute[] = [
-  {
-    id: "dsp_123",
-    transactionId: "tx_567890",
-    userId: "user_5",
-    reason: "Não reconhece a compra",
-    evidence: "Screenshot de comunicação com cliente",
-    status: "under_review",
-    createdAt: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-    adminNotes: "Cliente entrou em contato alegando não reconhecer a compra. Aguardando mais informações."
-  }
-];
-
-const mockBankReconciliations: BankReconciliation[] = [
-  {
-    id: "rec_123",
-    bankStatementId: "bank_stmt_1",
-    transactionId: "tx_123456",
-    status: "matched",
-    bankAmount: 19.90,
-    systemAmount: 19.90,
-    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "rec_124",
-    bankStatementId: "bank_stmt_2",
-    transactionId: "tx_234567",
-    status: "matched",
-    bankAmount: 15.90,
-    systemAmount: 15.90,
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "rec_125",
-    bankStatementId: "bank_stmt_3",
-    transactionId: "",
-    status: "unmatched",
-    bankAmount: 29.90,
-    systemAmount: 0,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-  }
-];
-
-export const useTransactions = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [refunds, setRefunds] = useState<Refund[]>(mockRefunds);
-  const [disputes, setDisputes] = useState<Dispute[]>(mockDisputes);
-  const [reconciliations, setReconciliations] = useState<BankReconciliation[]>(mockBankReconciliations);
-
-  const getTransactions = (
-    userId?: string, 
-    status?: Transaction['status'], 
-    startDate?: string, 
-    endDate?: string,
-    paymentMethod?: PaymentMethod
-  ) => {
-    let filtered = transactions;
-    
-    if (userId) {
-      filtered = filtered.filter(tx => tx.userId === userId);
-    }
-    
-    if (status) {
-      filtered = filtered.filter(tx => tx.status === status);
-    }
-    
-    if (startDate) {
-      filtered = filtered.filter(tx => tx.createdAt >= startDate);
-    }
-    
-    if (endDate) {
-      filtered = filtered.filter(tx => tx.createdAt <= endDate);
-    }
-    
-    if (paymentMethod) {
-      filtered = filtered.filter(tx => tx.paymentMethod === paymentMethod);
-    }
-    
-    return filtered;
-  };
-
-  const getTransactionById = (id: string) => {
-    return transactions.find(tx => tx.id === id);
-  };
-
-  const createTransaction = (tx: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newTransaction: Transaction = {
-      ...tx,
-      id: `tx_${Date.now()}`,
+// Mock or API service for transactions
+const fetchTransactionsFromAPI = async (): Promise<Transaction[]> => {
+  // In a real app, this would call an API
+  return [
+    {
+      id: 'tx_123456',
+      userId: 'user_1',
+      amount: 29.99,
+      currency: 'BRL',
+      paymentMethod: 'credit_card',
+      status: 'completed',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    };
-    
-    setTransactions([...transactions, newTransaction]);
-    return newTransaction;
-  };
-
-  const updateTransactionStatus = (id: string, status: Transaction['status']) => {
-    const updatedTransactions = transactions.map(tx => {
-      if (tx.id === id) {
-        return {
-          ...tx,
-          status,
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return tx;
-    });
-    
-    setTransactions(updatedTransactions);
-    return updatedTransactions.find(tx => tx.id === id);
-  };
-
-  const getRefunds = (userId?: string, status?: Refund['status']) => {
-    let filtered = refunds;
-    
-    if (userId) {
-      filtered = filtered.filter(ref => ref.userId === userId);
-    }
-    
-    if (status) {
-      filtered = filtered.filter(ref => ref.status === status);
-    }
-    
-    return filtered;
-  };
-
-  const getRefundById = (id: string) => {
-    return refunds.find(ref => ref.id === id);
-  };
-
-  const createRefund = (refund: Omit<Refund, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const transaction = transactions.find(tx => tx.id === refund.transactionId);
-    
-    if (!transaction) {
-      throw new Error("Transação não encontrada");
-    }
-    
-    if (transaction.status !== "completed") {
-      throw new Error("Apenas transações concluídas podem ser reembolsadas");
-    }
-    
-    if (transaction.status === "refunded") {
-      throw new Error("Esta transação já foi reembolsada");
-    }
-    
-    if (refund.amount > transaction.amount) {
-      throw new Error("O valor do reembolso não pode ser maior que o valor da transação");
-    }
-    
-    const newRefund: Refund = {
-      ...refund,
-      id: `ref_${Date.now()}`,
+    },
+    {
+      id: 'tx_234567',
+      userId: 'user_2',
+      amount: 19.99,
+      currency: 'BRL',
+      paymentMethod: 'pix',
+      status: 'pending',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    };
-    
-    setRefunds([...refunds, newRefund]);
-    
-    updateTransactionStatus(transaction.id, "refunded");
-    
-    return newRefund;
-  };
-
-  const updateRefundStatus = (id: string, status: Refund['status']) => {
-    const updatedRefunds = refunds.map(ref => {
-      if (ref.id === id) {
-        return {
-          ...ref,
-          status,
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return ref;
-    });
-    
-    setRefunds(updatedRefunds);
-    return updatedRefunds.find(ref => ref.id === id);
-  };
-
-  const getDisputes = (status?: Dispute['status']) => {
-    if (status) {
-      return disputes.filter(dsp => dsp.status === status);
     }
-    return disputes;
-  };
+  ];
+};
 
-  const getDisputeById = (id: string) => {
-    return disputes.find(dsp => dsp.id === id);
+// Types for the hook
+export interface TransactionFilters {
+  status?: Transaction['status'];
+  amount?: {
+    min?: number;
+    max?: number;
   };
-
-  const createDispute = (dispute: Omit<Dispute, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const transaction = transactions.find(tx => tx.id === dispute.transactionId);
-    
-    if (!transaction) {
-      throw new Error("Transação não encontrada");
-    }
-    
-    const newDispute: Dispute = {
-      ...dispute,
-      id: `dsp_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    setDisputes([...disputes, newDispute]);
-    
-    updateTransactionStatus(transaction.id, "disputed");
-    
-    return newDispute;
+  dateRange?: {
+    from?: Date;
+    to?: Date;
   };
+  paymentMethod?: PaymentMethod;
+  search?: string;
+}
 
-  const updateDisputeStatus = (id: string, status: Dispute['status'], notes?: string) => {
-    const updatedDisputes = disputes.map(dsp => {
-      if (dsp.id === id) {
-        return {
-          ...dsp,
-          status,
-          adminNotes: notes || dsp.adminNotes,
-          updatedAt: new Date().toISOString(),
-          ...(status === 'won' || status === 'lost' ? { resolvedAt: new Date().toISOString() } : {})
-        };
-      }
-      return dsp;
-    });
-    
-    setDisputes(updatedDisputes);
-    const updatedDispute = updatedDisputes.find(dsp => dsp.id === id);
-    
-    if (updatedDispute && (status === 'won' || status === 'lost')) {
-      const transactionStatus = status === 'won' ? "completed" : "chargeback";
-      const transaction = transactions.find(tx => tx.id === updatedDispute.transactionId);
+interface TransactionSort {
+  field: keyof Transaction;
+  direction: 'asc' | 'desc';
+}
+
+export interface UseTransactionsOptions {
+  initialFilters?: TransactionFilters;
+  initialSort?: TransactionSort;
+  pageSize?: number;
+}
+
+interface UseTransactionsReturn {
+  transactions: Transaction[];
+  isLoading: boolean;
+  error: Error | null;
+  filters: TransactionFilters;
+  setFilters: (filters: TransactionFilters) => void;
+  sort: TransactionSort;
+  setSort: (sort: TransactionSort) => void;
+  page: number;
+  setPage: (page: number) => void;
+  totalPages: number;
+  refetch: () => Promise<void>;
+  processPayment: (details: PaymentDetails) => Promise<Transaction | null>;
+  cancelTransaction: (transactionId: string) => Promise<boolean>;
+  requestRefund: (transactionId: string, amount: number, reason: string) => Promise<boolean>;
+}
+
+// The hook
+export const useTransactions = (options: UseTransactionsOptions = {}): UseTransactionsReturn => {
+  const {
+    initialFilters = {},
+    initialSort = { field: 'createdAt', direction: 'desc' },
+    pageSize = 10
+  } = options;
+
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [filters, setFilters] = useState<TransactionFilters>(initialFilters);
+  const [sort, setSort] = useState<TransactionSort>(initialSort);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Fetch transactions
+  const fetchTransactions = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchTransactionsFromAPI();
       
-      if (transaction) {
-        updateTransactionStatus(transaction.id, transactionStatus);
+      // Apply filters
+      let filteredData = [...data];
+      
+      if (filters.status) {
+        filteredData = filteredData.filter(tx => tx.status === filters.status);
       }
-    }
-    
-    return updatedDispute;
-  };
-
-  const getReconciliations = (status?: BankReconciliation['status']) => {
-    if (status) {
-      return reconciliations.filter(rec => rec.status === status);
-    }
-    return reconciliations;
-  };
-
-  const createReconciliation = (rec: Omit<BankReconciliation, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newReconciliation: BankReconciliation = {
-      ...rec,
-      id: `rec_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    setReconciliations([...reconciliations, newReconciliation]);
-    return newReconciliation;
-  };
-
-  const matchReconciliation = (id: string, transactionId: string) => {
-    const recItem = reconciliations.find(rec => rec.id === id);
-    const transaction = transactions.find(tx => tx.id === transactionId);
-    
-    if (!recItem) {
-      throw new Error("Item de conciliação não encontrado");
-    }
-    
-    if (!transaction) {
-      throw new Error("Transação não encontrada");
-    }
-    
-    const updatedReconciliations = reconciliations.map(rec => {
-      if (rec.id === id) {
-        const discrepancyAmount = 
-          Math.abs(rec.bankAmount - transaction.amount) > 0.01 
-            ? rec.bankAmount - transaction.amount 
-            : undefined;
+      
+      if (filters.amount?.min !== undefined) {
+        filteredData = filteredData.filter(tx => tx.amount >= (filters.amount?.min || 0));
+      }
+      
+      if (filters.amount?.max !== undefined) {
+        filteredData = filteredData.filter(tx => tx.amount <= (filters.amount?.max || Infinity));
+      }
+      
+      if (filters.dateRange?.from) {
+        const fromDate = new Date(filters.dateRange.from).getTime();
+        filteredData = filteredData.filter(tx => new Date(tx.createdAt).getTime() >= fromDate);
+      }
+      
+      if (filters.dateRange?.to) {
+        const toDate = new Date(filters.dateRange.to).getTime();
+        filteredData = filteredData.filter(tx => new Date(tx.createdAt).getTime() <= toDate);
+      }
+      
+      if (filters.paymentMethod) {
+        filteredData = filteredData.filter(tx => tx.paymentMethod === filters.paymentMethod);
+      }
+      
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        filteredData = filteredData.filter(tx => 
+          tx.id.toLowerCase().includes(searchLower) || 
+          tx.userId.toLowerCase().includes(searchLower)
+        );
+      }
+      
+      // Apply sorting
+      filteredData.sort((a, b) => {
+        const aValue = a[sort.field];
+        const bValue = b[sort.field];
         
-        const status = discrepancyAmount ? "partial_match" : "matched";
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sort.direction === 'asc' 
+            ? aValue.localeCompare(bValue) 
+            : bValue.localeCompare(aValue);
+        }
         
-        return {
-          ...rec,
-          transactionId,
-          systemAmount: transaction.amount,
-          status: status as "matched" | "unmatched" | "partial_match",
-          discrepancyAmount,
-          updatedAt: new Date().toISOString()
-        };
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sort.direction === 'asc' ? aValue - bValue : bValue - aValue;
+        }
+        
+        if (aValue instanceof Date && bValue instanceof Date) {
+          return sort.direction === 'asc' 
+            ? aValue.getTime() - bValue.getTime() 
+            : bValue.getTime() - aValue.getTime();
+        }
+        
+        return 0;
+      });
+      
+      // Calculate pagination
+      const totalItems = filteredData.length;
+      setTotalPages(Math.ceil(totalItems / pageSize));
+      
+      // Apply pagination
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      const paginatedData = filteredData.slice(start, end);
+      
+      setTransactions(paginatedData);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch transactions'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Effect to fetch transactions when dependencies change
+  useEffect(() => {
+    fetchTransactions();
+  }, [JSON.stringify(filters), JSON.stringify(sort), page]);
+
+  // Refetch transactions
+  const refetch = async () => {
+    await fetchTransactions();
+  };
+
+  // Process a new payment
+  const processPayment = async (details: PaymentDetails): Promise<Transaction | null> => {
+    // In a real app, this would call an API
+    try {
+      // Mock processing a payment
+      const newTransaction: Transaction = {
+        id: `tx_${Date.now()}`,
+        userId: 'current_user', // In a real app, this would be the current user's ID
+        amount: details.amount,
+        currency: details.currency,
+        paymentMethod: details.method,
+        status: 'processing',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update local state (in a real app, this would come from the API response)
+      setTransactions(prev => [newTransaction, ...prev]);
+      
+      return newTransaction;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to process payment'));
+      return null;
+    }
+  };
+
+  // Cancel a transaction
+  const cancelTransaction = async (transactionId: string): Promise<boolean> => {
+    try {
+      // In a real app, this would call an API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update local state
+      setTransactions(prev => 
+        prev.map(tx => 
+          tx.id === transactionId 
+            ? { ...tx, status: 'failed', updatedAt: new Date().toISOString() } 
+            : tx
+        )
+      );
+      
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to cancel transaction'));
+      return false;
+    }
+  };
+
+  // Request a refund
+  const requestRefund = async (transactionId: string, amount: number, reason: string): Promise<boolean> => {
+    try {
+      // Find the transaction
+      const transaction = transactions.find(tx => tx.id === transactionId);
+      
+      if (!transaction) {
+        throw new Error('Transaction not found');
       }
-      return rec;
-    });
-    
-    setReconciliations(updatedReconciliations as BankReconciliation[]);
-    return updatedReconciliations.find(rec => rec.id === id);
-  };
-
-  const resolveReconciliationDiscrepancy = (
-    id: string, 
-    reason: string, 
-    adminId: string
-  ) => {
-    const updatedReconciliations = reconciliations.map(rec => {
-      if (rec.id === id) {
-        return {
-          ...rec,
-          discrepancyReason: reason,
-          resolvedById: adminId,
-          resolvedAt: new Date().toISOString(),
-          status: "matched" as "matched" | "unmatched" | "partial_match",
-          updatedAt: new Date().toISOString()
-        };
+      
+      // Check if transaction can be refunded
+      if (transaction.status !== 'completed') {
+        throw new Error('Only completed transactions can be refunded');
       }
-      return rec;
-    });
-    
-    setReconciliations(updatedReconciliations as BankReconciliation[]);
-    return updatedReconciliations.find(rec => rec.id === id);
-  };
-
-  const getTransactionStats = (
-    startDate?: string, 
-    endDate?: string,
-    groupBy: 'day' | 'week' | 'month' = 'day'
-  ) => {
-    let filtered = transactions;
-    
-    if (startDate) {
-      filtered = filtered.filter(tx => tx.createdAt >= startDate);
+      
+      // In a real app, this would call an API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update local state
+      setTransactions(prev => 
+        prev.map(tx => 
+          tx.id === transactionId 
+            ? { ...tx, status: 'refunded', updatedAt: new Date().toISOString() } 
+            : tx
+        )
+      );
+      
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to request refund'));
+      return false;
     }
-    
-    if (endDate) {
-      filtered = filtered.filter(tx => tx.createdAt <= endDate);
-    }
-    
-    const completed = filtered.filter(tx => tx.status === "completed");
-    const refunded = filtered.filter(tx => tx.status === "refunded");
-    const disputed = filtered.filter(tx => tx.status === "disputed");
-    
-    const totalAmount = completed.reduce((sum, tx) => sum + tx.amount, 0);
-    const refundedAmount = refunded.reduce((sum, tx) => sum + tx.amount, 0);
-    const disputedAmount = disputed.reduce((sum, tx) => sum + tx.amount, 0);
-    
-    const byMethod = {
-      credit_card: filtered.filter(tx => tx.paymentMethod === "credit_card").length,
-      pix: filtered.filter(tx => tx.paymentMethod === "pix").length,
-      boleto: filtered.filter(tx => tx.paymentMethod === "boleto").length,
-      debit_card: filtered.filter(tx => tx.paymentMethod === "debit_card").length
-    };
-    
-    const timeSeriesData: Array<{
-      period: string;
-      count: number;
-      amount: number;
-    }> = [];
-    
-    return {
-      total: {
-        count: filtered.length,
-        amount: totalAmount
-      },
-      completed: {
-        count: completed.length,
-        amount: totalAmount
-      },
-      refunded: {
-        count: refunded.length,
-        amount: refundedAmount
-      },
-      disputed: {
-        count: disputed.length,
-        amount: disputedAmount
-      },
-      netAmount: totalAmount - refundedAmount,
-      byMethod,
-      timeSeries: timeSeriesData
-    };
-  };
-
-  const exportTransactionsCSV = (
-    startDate?: string, 
-    endDate?: string,
-    statuses?: Transaction['status'][]
-  ) => {
-    let filtered = transactions;
-    
-    if (startDate) {
-      filtered = filtered.filter(tx => tx.createdAt >= startDate);
-    }
-    
-    if (endDate) {
-      filtered = filtered.filter(tx => tx.createdAt <= endDate);
-    }
-    
-    if (statuses && statuses.length > 0) {
-      filtered = filtered.filter(tx => statuses.includes(tx.status));
-    }
-    
-    toast.success(`${filtered.length} transações exportadas para CSV`);
-    
-    return {
-      success: true,
-      count: filtered.length,
-      data: "csv_data_here"
-    };
   };
 
   return {
     transactions,
-    getTransactions,
-    getTransactionById,
-    createTransaction,
-    updateTransactionStatus,
-    
-    refunds,
-    getRefunds,
-    getRefundById,
-    createRefund,
-    updateRefundStatus,
-    
-    disputes,
-    getDisputes,
-    getDisputeById,
-    createDispute,
-    updateDisputeStatus,
-    
-    reconciliations,
-    getReconciliations,
-    createReconciliation,
-    matchReconciliation,
-    resolveReconciliationDiscrepancy,
-    
-    getTransactionStats,
-    exportTransactionsCSV
+    isLoading,
+    error,
+    filters,
+    setFilters,
+    sort,
+    setSort,
+    page,
+    setPage,
+    totalPages,
+    refetch,
+    processPayment,
+    cancelTransaction,
+    requestRefund
   };
 };

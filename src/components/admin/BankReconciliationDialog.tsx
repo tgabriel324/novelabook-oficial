@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Upload, Search, CheckCircle, XCircle } from "lucide-react";
+import { Upload, Search, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
 interface BankReconciliationDialogProps {

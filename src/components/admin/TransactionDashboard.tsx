@@ -36,6 +36,13 @@ const TransactionDashboard: React.FC = () => {
     compareTransactions
   } = useTransactionAdmin();
 
+  // State for dialogs
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
+  const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
+  const [reconciliationDialogOpen, setReconciliationDialogOpen] = useState(false);
+
   // State for filters
   const [filters, setFilters] = useState({
     status: '',
@@ -99,6 +106,18 @@ const TransactionDashboard: React.FC = () => {
     if (file) {
       importBankStatementFile(file);
     }
+  };
+
+  // Handle opening refund dialog
+  const handleOpenRefundDialog = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setRefundDialogOpen(true);
+  };
+
+  // Handle opening dispute dialog
+  const handleOpenDisputeDialog = (dispute: Dispute) => {
+    setSelectedDispute(dispute);
+    setDisputeDialogOpen(true);
   };
 
   return (
@@ -215,7 +234,11 @@ const TransactionDashboard: React.FC = () => {
           </div>
         </div>
         
-        {analysisData && <ComparativeAnalysisChart data={analysisData} />}
+        {analysisData && (
+          <div className="h-64">
+            <ComparativeAnalysisChart data={analysisData} />
+          </div>
+        )}
       </div>
 
       <Tabs defaultValue="transactions" className="w-full">
@@ -361,17 +384,13 @@ const TransactionDashboard: React.FC = () => {
                           <TableCell>
                             <div className="flex gap-2">
                               {transaction.status === 'completed' && (
-                                <RefundDialog 
-                                  transaction={transaction} 
-                                  onRefund={(amount, reason) => 
-                                    createRefund({
-                                      transactionId: transaction.id,
-                                      amount,
-                                      reason,
-                                      adminId: 'admin_user'
-                                    })
-                                  }
-                                />
+                                <Button
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => handleOpenRefundDialog(transaction)}
+                                >
+                                  Reembolsar
+                                </Button>
                               )}
                               <Button size="sm" variant="outline">
                                 Detalhes
@@ -510,16 +529,13 @@ const TransactionDashboard: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             {dispute.status === 'open' && (
-                              <DisputeResponseDialog
-                                dispute={dispute}
-                                onRespond={(response, evidence) => 
-                                  respondToDisputeRequest({
-                                    disputeId: dispute.id,
-                                    response,
-                                    evidence
-                                  })
-                                }
-                              />
+                              <Button 
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleOpenDisputeDialog(dispute)}
+                              >
+                                Responder
+                              </Button>
                             )}
                           </TableCell>
                         </TableRow>
@@ -618,19 +634,13 @@ const TransactionDashboard: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             {reconciliation.status === 'unmatched' && (
-                              <BankReconciliationDialog
-                                reconciliation={reconciliation}
-                                transactions={transactions}
-                                onReconcile={(transactionId) => 
-                                  reconcileManually(
-                                    {
-                                      reconciliationId: reconciliation.id,
-                                      transactionId
-                                    },
-                                    transactions
-                                  )
-                                }
-                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setReconciliationDialogOpen(true)}
+                              >
+                                Conciliar
+                              </Button>
                             )}
                           </TableCell>
                         </TableRow>
@@ -651,6 +661,57 @@ const TransactionDashboard: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog Components */}
+      {selectedTransaction && refundDialogOpen && (
+        <RefundDialog 
+          transaction={selectedTransaction}
+          onRefund={(amount, reason) => {
+            createRefund({
+              transactionId: selectedTransaction.id,
+              amount,
+              reason,
+              adminId: 'admin_user'
+            });
+            setRefundDialogOpen(false);
+          }}
+          onCancel={() => setRefundDialogOpen(false)}
+        />
+      )}
+
+      {selectedDispute && disputeDialogOpen && (
+        <DisputeResponseDialog
+          dispute={selectedDispute}
+          onSubmit={(response, evidence) => {
+            respondToDisputeRequest({
+              disputeId: selectedDispute.id,
+              response,
+              evidence
+            });
+            setDisputeDialogOpen(false);
+          }}
+          onCancel={() => setDisputeDialogOpen(false)}
+        />
+      )}
+
+      {reconciliationDialogOpen && (
+        <BankReconciliationDialog
+          transactions={transactions}
+          reconciliations={reconciliations}
+          onImportFile={handleFileUpload}
+          onReconcile={(reconciliationId, transactionId) => {
+            reconcileManually(
+              {
+                reconciliationId,
+                transactionId
+              },
+              transactions
+            );
+            setReconciliationDialogOpen(false);
+          }}
+          onClose={() => setReconciliationDialogOpen(false)}
+        />
+      )}
     </div>
   );
 };
