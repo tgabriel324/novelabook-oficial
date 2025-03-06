@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Transaction, Refund } from '@/lib/data/paymentTypes';
 import { RefundRequest } from './types';
@@ -6,12 +5,17 @@ import { generateUniqueId } from './utils';
 import { useToast } from '@/hooks/use-toast';
 import { processRefund } from '@/services/admin/transactionAdminService';
 
-export const useRefundManagement = (
-  initialTransactions: Transaction[],
-  initialRefunds: Refund[]
-) => {
-  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
-  const [refunds, setRefunds] = useState<Refund[]>(initialRefunds);
+export const useRefundManagement = ({ 
+  refunds, 
+  setRefunds, 
+  transactions, 
+  setTransactions 
+}: { 
+  refunds: Refund[], 
+  setRefunds: React.Dispatch<React.SetStateAction<Refund[]>>,
+  transactions: Transaction[], 
+  setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -100,10 +104,6 @@ export const useRefundManagement = (
   };
 
   return {
-    transactions,
-    setTransactions,
-    refunds,
-    setRefunds,
     isLoading,
     createRefund
   };

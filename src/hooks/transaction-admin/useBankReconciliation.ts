@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Transaction, BankReconciliation } from '@/lib/data/paymentTypes';
 import { ReconciliationMatch } from './types';
@@ -6,11 +5,15 @@ import { generateUniqueId } from './utils';
 import { useToast } from '@/hooks/use-toast';
 import { importBankStatement } from '@/services/admin/transactionAdminService';
 
-export const useBankReconciliation = (
-  initialTransactions: Transaction[],
-  initialReconciliations: BankReconciliation[]
-) => {
-  const [reconciliations, setReconciliations] = useState<BankReconciliation[]>(initialReconciliations);
+export const useBankReconciliation = ({ 
+  reconciliations, 
+  setReconciliations, 
+  transactions 
+}: { 
+  reconciliations: BankReconciliation[], 
+  setReconciliations: React.Dispatch<React.SetStateAction<BankReconciliation[]>>,
+  transactions: Transaction[]
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -67,8 +70,7 @@ export const useBankReconciliation = (
   };
 
   const reconcileManually = (
-    { reconciliationId, transactionId }: ReconciliationMatch,
-    transactions: Transaction[]
+    { reconciliationId, transactionId }: ReconciliationMatch
   ) => {
     // Find reconciliation and transaction
     const reconciliation = reconciliations.find(r => r.id === reconciliationId);
@@ -118,8 +120,6 @@ export const useBankReconciliation = (
   };
 
   return {
-    reconciliations,
-    setReconciliations,
     isLoading,
     importBankStatementFile,
     reconcileManually

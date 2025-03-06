@@ -1,21 +1,12 @@
 
 import { useState } from "react";
 import { Transaction, Dispute, Refund, BankReconciliation } from "@/lib/data/paymentTypes";
-import { 
-  useTransactionFiltering
-} from "@/hooks/transaction-admin/useTransactionFiltering";
-import {
-  useRefundManagement
-} from "@/hooks/transaction-admin/useRefundManagement";
-import {
-  useDisputeManagement
-} from "@/hooks/transaction-admin/useDisputeManagement";
-import {
-  useBankReconciliation
-} from "@/hooks/transaction-admin/useBankReconciliation";
-import {
-  useExportReports
-} from "@/hooks/transaction-admin/useExportReports";
+import { useTransactionFiltering } from "@/hooks/transaction-admin/useTransactionFiltering";
+import { useRefundManagement } from "@/hooks/transaction-admin/useRefundManagement";
+import { useDisputeManagement } from "@/hooks/transaction-admin/useDisputeManagement";
+import { useBankReconciliation } from "@/hooks/transaction-admin/useBankReconciliation";
+import { useExportReports } from "@/hooks/transaction-admin/useExportReports";
+import { TransactionFilters } from "@/hooks/transaction-admin/types";
 
 // Main hook that combines all transaction admin hooks
 export const useTransactionAdmin = () => {
@@ -83,8 +74,8 @@ export const useTransactionAdmin = () => {
     }
   ]);
 
-  // Combine all hooks
-  const { filterTransactions } = useTransactionFiltering({ transactions });
+  // Combine all hooks with the correct parameters
+  const { applyFilters, filterTransactions } = useTransactionFiltering({ transactions });
   
   const { createRefund } = useRefundManagement({ 
     refunds, 
@@ -117,6 +108,11 @@ export const useTransactionAdmin = () => {
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
 
+  // Function to filter transactions based on criteria
+  const filterTransactionsWithCriteria = (filters: TransactionFilters): Transaction[] => {
+    return filterTransactions(filters); // Using the alias provided by useTransactionFiltering
+  };
+
   return {
     transactions,
     refunds,
@@ -124,7 +120,7 @@ export const useTransactionAdmin = () => {
     reconciliations,
     isLoading,
     exportProgress,
-    filterTransactions,
+    filterTransactions: filterTransactionsWithCriteria,
     createRefund,
     respondToDisputeRequest,
     importBankStatementFile,

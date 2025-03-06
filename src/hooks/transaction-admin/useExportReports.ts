@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Transaction } from '@/lib/data/paymentTypes';
-import { ExportOptions } from './types';
+import { ExportOptions, ComparativeAnalysisRequest } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { 
   exportTransactionsToCSV, 
@@ -140,10 +140,22 @@ export const useExportReports = () => {
     }
   };
 
+  // Add compareTransactions as an alias for generateAnalysis for backward compatibility
+  const compareTransactions = (params: ComparativeAnalysisRequest) => {
+    return generateAnalysis(
+      [], // This will be filled with actual transactions in useTransactionAdmin
+      params.periodStart,
+      params.periodEnd,
+      params.previousPeriodStart,
+      params.previousPeriodEnd
+    );
+  };
+
   return {
     exportProgress,
     exportToCSV,
     exportToPDF,
-    generateAnalysis
+    generateAnalysis,
+    compareTransactions
   };
 };

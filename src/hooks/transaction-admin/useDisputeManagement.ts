@@ -1,12 +1,16 @@
-
 import { useState } from 'react';
 import { Dispute } from '@/lib/data/paymentTypes';
 import { DisputeResponse } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { respondToDispute } from '@/services/admin/transactionAdminService';
 
-export const useDisputeManagement = (initialDisputes: Dispute[]) => {
-  const [disputes, setDisputes] = useState<Dispute[]>(initialDisputes);
+export const useDisputeManagement = ({ 
+  disputes, 
+  setDisputes 
+}: { 
+  disputes: Dispute[], 
+  setDisputes: React.Dispatch<React.SetStateAction<Dispute[]>>
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -65,8 +69,6 @@ export const useDisputeManagement = (initialDisputes: Dispute[]) => {
   };
 
   return {
-    disputes,
-    setDisputes,
     isLoading,
     respondToDisputeRequest
   };
