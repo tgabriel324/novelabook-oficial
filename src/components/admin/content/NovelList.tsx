@@ -35,11 +35,11 @@ export function NovelList({ novels, isLoading, onEdit, onDelete }: NovelListProp
   const getStatusBadge = (status: Novel['status']) => {
     switch (status) {
       case 'published':
-        return <Badge variant="success">Publicado</Badge>;
+        return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Publicado</Badge>;
       case 'draft':
         return <Badge variant="outline">Rascunho</Badge>;
       case 'featured':
-        return <Badge variant="telegram">Destaque</Badge>;
+        return <Badge variant="secondary" className="bg-[#0088cc] hover:bg-[#0088cc]/90 text-white">Destaque</Badge>;
       case 'archived':
         return <Badge variant="destructive">Arquivado</Badge>;
       default:
