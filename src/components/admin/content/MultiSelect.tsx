@@ -63,9 +63,9 @@ export function MultiSelect({
             {React.Children.map(children, (child) => {
               if (React.isValidElement(child) && child.type === MultiSelectItem) {
                 return React.cloneElement(child, {
-                  selected: value.includes(child.props.value),
                   itemValue: child.props.value,
-                  onItemSelect: handleSelect
+                  onItemSelect: handleSelect,
+                  isSelected: value.includes(child.props.value)
                 });
               }
               return child;
@@ -79,7 +79,7 @@ export function MultiSelect({
 
 interface MultiSelectItemProps {
   value: string;
-  selected?: boolean;
+  isSelected?: boolean;
   itemValue?: string;
   onItemSelect?: (value: string) => void;
   children: React.ReactNode;
@@ -87,7 +87,7 @@ interface MultiSelectItemProps {
 
 export function MultiSelectItem({
   value,
-  selected,
+  isSelected,
   itemValue,
   onItemSelect,
   children,
@@ -100,7 +100,7 @@ export function MultiSelectItem({
           onItemSelect(itemValue);
         }
       }}
-      className={selected ? "bg-accent text-accent-foreground" : ""}
+      className={isSelected ? "bg-accent text-accent-foreground" : ""}
     >
       {children}
     </CommandItem>
