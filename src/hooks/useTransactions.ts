@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -137,7 +136,6 @@ export const useTransactions = () => {
   const [disputes, setDisputes] = useState<Dispute[]>(mockDisputes);
   const [reconciliations, setReconciliations] = useState<BankReconciliation[]>(mockBankReconciliations);
 
-  // Funções para transações
   const getTransactions = (
     userId?: string, 
     status?: Transaction['status'], 
@@ -202,7 +200,6 @@ export const useTransactions = () => {
     return updatedTransactions.find(tx => tx.id === id);
   };
 
-  // Funções para reembolsos
   const getRefunds = (userId?: string, status?: Refund['status']) => {
     let filtered = refunds;
     
@@ -222,7 +219,6 @@ export const useTransactions = () => {
   };
 
   const createRefund = (refund: Omit<Refund, 'id' | 'createdAt' | 'updatedAt'>) => {
-    // Verificar se a transação existe e pode ser reembolsada
     const transaction = transactions.find(tx => tx.id === refund.transactionId);
     
     if (!transaction) {
@@ -250,7 +246,6 @@ export const useTransactions = () => {
     
     setRefunds([...refunds, newRefund]);
     
-    // Atualizar o status da transação
     updateTransactionStatus(transaction.id, "refunded");
     
     return newRefund;
@@ -272,7 +267,6 @@ export const useTransactions = () => {
     return updatedRefunds.find(ref => ref.id === id);
   };
 
-  // Funções para disputas
   const getDisputes = (status?: Dispute['status']) => {
     if (status) {
       return disputes.filter(dsp => dsp.status === status);
@@ -285,7 +279,6 @@ export const useTransactions = () => {
   };
 
   const createDispute = (dispute: Omit<Dispute, 'id' | 'createdAt' | 'updatedAt'>) => {
-    // Verificar se a transação existe
     const transaction = transactions.find(tx => tx.id === dispute.transactionId);
     
     if (!transaction) {
@@ -301,7 +294,6 @@ export const useTransactions = () => {
     
     setDisputes([...disputes, newDispute]);
     
-    // Atualizar o status da transação
     updateTransactionStatus(transaction.id, "disputed");
     
     return newDispute;
@@ -324,7 +316,6 @@ export const useTransactions = () => {
     setDisputes(updatedDisputes);
     const updatedDispute = updatedDisputes.find(dsp => dsp.id === id);
     
-    // Se a disputa foi resolvida, atualizar o status da transação
     if (updatedDispute && (status === 'won' || status === 'lost')) {
       const transactionStatus = status === 'won' ? "completed" : "chargeback";
       const transaction = transactions.find(tx => tx.id === updatedDispute.transactionId);
@@ -337,7 +328,6 @@ export const useTransactions = () => {
     return updatedDispute;
   };
 
-  // Funções para conciliação bancária
   const getReconciliations = (status?: BankReconciliation['status']) => {
     if (status) {
       return reconciliations.filter(rec => rec.status === status);
@@ -383,7 +373,7 @@ export const useTransactions = () => {
           status: discrepancyAmount ? "partial_match" : "matched",
           discrepancyAmount,
           updatedAt: new Date().toISOString()
-        };
+        } as BankReconciliation;
       }
       return rec;
     });
@@ -406,7 +396,7 @@ export const useTransactions = () => {
           resolvedAt: new Date().toISOString(),
           status: "matched",
           updatedAt: new Date().toISOString()
-        };
+        } as BankReconciliation;
       }
       return rec;
     });
@@ -415,7 +405,6 @@ export const useTransactions = () => {
     return updatedReconciliations.find(rec => rec.id === id);
   };
 
-  // Estatísticas e relatórios
   const getTransactionStats = (
     startDate?: string, 
     endDate?: string,
@@ -446,16 +435,11 @@ export const useTransactions = () => {
       debit_card: filtered.filter(tx => tx.paymentMethod === "debit_card").length
     };
     
-    // Criar agrupamento por período (simplificado)
     const timeSeriesData: Array<{
       period: string;
       count: number;
       amount: number;
     }> = [];
-    
-    // Este é um exemplo simplificado - em uma implementação real,
-    // você usaria bibliotecas como date-fns para manipulação de datas
-    // e agrupamento adequado por dia/semana/mês
     
     return {
       total: {
@@ -480,7 +464,6 @@ export const useTransactions = () => {
     };
   };
 
-  // Exportação de dados
   const exportTransactionsCSV = (
     startDate?: string, 
     endDate?: string,
@@ -500,47 +483,40 @@ export const useTransactions = () => {
       filtered = filtered.filter(tx => statuses.includes(tx.status));
     }
     
-    // Aqui apenas simulamos a exportação - em uma implementação real,
-    // você geraria um arquivo CSV adequado
     toast.success(`${filtered.length} transações exportadas para CSV`);
     
     return {
       success: true,
       count: filtered.length,
-      data: "csv_data_here" // Em uma implementação real, este seria o conteúdo CSV
+      data: "csv_data_here"
     };
   };
 
   return {
-    // Transações
     transactions,
     getTransactions,
     getTransactionById,
     createTransaction,
     updateTransactionStatus,
     
-    // Reembolsos
     refunds,
     getRefunds,
     getRefundById,
     createRefund,
     updateRefundStatus,
     
-    // Disputas
     disputes,
     getDisputes,
     getDisputeById,
     createDispute,
     updateDisputeStatus,
     
-    // Conciliação bancária
     reconciliations,
     getReconciliations,
     createReconciliation,
     matchReconciliation,
     resolveReconciliationDiscrepancy,
     
-    // Estatísticas e exportação
     getTransactionStats,
     exportTransactionsCSV
   };

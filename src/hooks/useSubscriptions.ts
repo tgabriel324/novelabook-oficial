@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { SubscriptionPlan, Subscription, SubscriptionInvoice } from '@/lib/data/paymentTypes';
+import { SubscriptionPlan, Subscription, SubscriptionInvoice, SubscriptionStatus } from '@/lib/data/paymentTypes';
 
 // Dados fictícios para demonstração
 const mockSubscriptionPlans: SubscriptionPlan[] = [
@@ -168,7 +168,7 @@ export const useSubscriptions = () => {
       id: `sub_${Date.now()}`,
       userId,
       planId,
-      status: "active",
+      status: "active" as SubscriptionStatus,
       currentPeriodStart: new Date().toISOString(),
       currentPeriodEnd: periodEnd.toISOString(),
       cancelAtPeriodEnd: false,
@@ -200,7 +200,7 @@ export const useSubscriptions = () => {
     const updatedSubscriptions = subscriptions.map(sub => {
       if (sub.id === id) {
         if (cancelImmediately) {
-          return { ...sub, status: "canceled", updatedAt: new Date().toISOString() };
+          return { ...sub, status: "canceled" as SubscriptionStatus, updatedAt: new Date().toISOString() };
         } else {
           return { ...sub, cancelAtPeriodEnd: true, updatedAt: new Date().toISOString() };
         }
@@ -287,7 +287,7 @@ export const useSubscriptions = () => {
       // Cancelar assinatura no final do período
       const updatedSubscriptions = subscriptions.map(sub => {
         if (sub.id === subscriptionId) {
-          return { ...sub, status: "canceled", updatedAt: new Date().toISOString() };
+          return { ...sub, status: "canceled" as SubscriptionStatus, updatedAt: new Date().toISOString() };
         }
         return sub;
       });
@@ -328,7 +328,7 @@ export const useSubscriptions = () => {
           ...sub,
           currentPeriodStart: newPeriodStart.toISOString(),
           currentPeriodEnd: newPeriodEnd.toISOString(),
-          status: "active",
+          status: "active" as SubscriptionStatus,
           updatedAt: new Date().toISOString(),
           latestInvoiceId: newInvoice.id
         };
