@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import Dashboard from "@/pages/admin/Dashboard";
 import ReadingAnalytics from "@/components/admin/ReadingAnalytics";
 import PerformanceOptimizer from "@/components/admin/PerformanceOptimizer";
 import CompatibilityTester from "@/components/admin/CompatibilityTester";
+import TransactionDashboard from "@/components/admin/TransactionDashboard";
 
 // Client Pages
 import Discover from "@/pages/client/Discover";
@@ -92,12 +92,9 @@ const App = () => (
             } />
 
             {/* Admin Routes */}
-            <Route path="/admin" element={
-              <AuthCheck allowedRoles={['admin']}>
-                <AdminLayout />
-              </AuthCheck>
-            }>
+            <Route path="/admin" element={<AuthCheck><AdminLayout /></AuthCheck>}>
               <Route index element={<Dashboard />} />
+              <Route path="transactions" element={<TransactionDashboard />} />
               <Route path="conteudo" element={<div>Gerenciamento de Conteúdo</div>} /> {/* Placeholder */}
               <Route path="usuarios" element={<div>Administração de Usuários</div>} /> {/* Placeholder */}
               <Route path="relatorios" element={<div>Relatórios</div>} /> {/* Placeholder */}
