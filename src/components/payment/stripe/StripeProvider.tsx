@@ -1,18 +1,23 @@
 
 import { ReactNode } from "react";
 import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
-
-// Coloque a chave pública do Stripe (este é um exemplo de chave de teste)
-const stripePromise = loadStripe("pk_test_51PMLKvLBDRyv5pCXAm4RWgWpqK2nvpmvdlMqL1sRSR02v6YWmpXjqgwGk1Lqt0iJ5cV6lXxUqQOvyLLQxcvDlqIT00wXfgRK7O");
+import { stripePromise } from "@/services/payment/stripeService";
 
 interface StripeProviderProps {
   children: ReactNode;
+  clientSecret?: string;
 }
 
-const StripeProvider = ({ children }: StripeProviderProps) => {
+const StripeProvider = ({ children, clientSecret }: StripeProviderProps) => {
+  const options = clientSecret ? {
+    clientSecret,
+    appearance: {
+      theme: 'stripe',
+    },
+  } : undefined;
+
   return (
-    <Elements stripe={stripePromise}>
+    <Elements stripe={stripePromise} options={options}>
       {children}
     </Elements>
   );

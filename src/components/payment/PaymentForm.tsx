@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Banknote, QrCode } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +11,9 @@ import StripeProvider from "./stripe/StripeProvider";
 import StripePaymentForm from "./stripe/StripePaymentForm";
 import PixPaymentForm from "./pix/PixPaymentForm";
 import BoletoPaymentForm from "./boleto/BoletoPaymentForm";
+import { generatePixReceipt } from "@/services/payment/pixService";
+import { generateBoletoReceipt } from "@/services/payment/boletoService";
+import { createPaymentIntent } from "@/services/payment/stripeService";
 
 interface PaymentFormProps {
   novel: Novel;
@@ -22,37 +25,51 @@ const PaymentForm = ({ novel, onPaymentComplete }: PaymentFormProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receipt, setReceipt] = useState<PurchaseReceipt | null>(null);
+  const [clientSecret, setClientSecret] = useState("");
+  
+  // Get Stripe client secret when component mounts
+  useEffect(() => {
+    const fetchClientSecret = async () => {
+      if (novel.price && paymentMethod === 'credit_card') {
+        try {
+          const { clientSecret } = await createPaymentIntent(novel.price);
+          setClientSecret(clientSecret);
+        } catch (error) {
+          console.error("Error fetching client secret:", error);
+          toast.error("Erro ao iniciar o processamento do pagamento");
+        }
+      }
+    };
+    
+    fetchClientSecret();
+  }, [novel.price, paymentMethod]);
 
-  const handlePayment = async () => {
+  const handlePayment = async (transactionId: string) => {
     setIsProcessing(true);
 
-    // Simulação de processamento de pagamento para métodos não-Stripe
-    setTimeout(() => {
-      const success = Math.random() > 0.2; // 80% de chance de sucesso para simular
+    try {
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      if (success) {
-        // Criar recibo de compra
-        const newReceipt: PurchaseReceipt = {
-          id: `purchase_${Date.now()}`,
-          userId: "user_current",
-          novelId: novel.id,
-          title: novel.title,
-          price: novel.price || 0,
-          purchaseDate: new Date().toISOString(),
-          paymentMethod: paymentMethod,
-          paymentStatus: 'completed'
-        };
-        
-        setReceipt(newReceipt);
-        setShowReceipt(true);
-        toast.success(`Pagamento de ${novel.price?.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})} processado com sucesso!`);
+      // Create receipt based on payment method
+      let paymentReceipt: PurchaseReceipt;
+      
+      if (paymentMethod === 'pix') {
+        paymentReceipt = generatePixReceipt(novel, transactionId, "user_current");
       } else {
-        toast.error("Falha no processamento do pagamento. Por favor, tente novamente.");
-        onPaymentComplete(false);
+        paymentReceipt = generateBoletoReceipt(novel, transactionId, "user_current");
       }
       
+      setReceipt(paymentReceipt);
+      setShowReceipt(true);
+      toast.success(`Pagamento de ${novel.price?.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})} processado com sucesso!`);
+    } catch (error) {
+      console.error("Payment processing error:", error);
+      toast.error("Falha no processamento do pagamento. Por favor, tente novamente.");
+      onPaymentComplete(false);
+    } finally {
       setIsProcessing(false);
-    }, 2000);
+    }
   };
 
   const handleStripeSuccess = (receipt: PurchaseReceipt) => {
@@ -99,7 +116,7 @@ const PaymentForm = ({ novel, onPaymentComplete }: PaymentFormProps) => {
           </TabsList>
           
           <TabsContent value="card" className="space-y-4">
-            <StripeProvider>
+            <StripeProvider clientSecret={clientSecret}>
               <StripePaymentForm 
                 novel={novel} 
                 onSuccess={handleStripeSuccess} 

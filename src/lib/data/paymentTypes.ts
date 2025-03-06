@@ -1,4 +1,3 @@
-
 export type PaymentMethod = 'credit_card' | 'debit_card' | 'pix' | 'boleto';
 
 export interface PaymentDetails {
@@ -9,6 +8,8 @@ export interface PaymentDetails {
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
   createdAt: string;
   updatedAt: string;
+  paymentIntentId?: string;
+  transactionId?: string;
 }
 
 export interface CardDetails {
@@ -16,17 +17,22 @@ export interface CardDetails {
   cardHolder: string;
   expiryDate: string;
   cvv: string;
+  saveCard?: boolean;
 }
 
 export interface PixDetails {
   key: string;
   expiresAt: string;
+  qrCodeImage?: string;
+  transactionId: string;
 }
 
 export interface BoletoDetails {
   code: string;
   expiresAt: string;
   url: string;
+  barCodeImage?: string;
+  transactionId: string;
 }
 
 export interface PurchaseReceipt {
@@ -38,20 +44,23 @@ export interface PurchaseReceipt {
   purchaseDate: string;
   paymentMethod: PaymentMethod;
   paymentStatus: 'completed' | 'pending' | 'failed' | 'refunded';
+  transactionDetails?: {
+    paymentProcessor?: string;
+    transactionId?: string;
+    paymentIntentId?: string;
+  };
 }
 
-// Novo tipo para armazenar marcadores
 export interface Bookmark {
   id: string;
   userId: string;
   novelId: string;
   chapterId: string;
   title: string;
-  position: number; // Posição percentual na página (0-100)
+  position: number;
   createdAt: string;
 }
 
-// Novo tipo para armazenar notas do usuário
 export interface UserNote {
   id: string;
   userId: string;
@@ -63,7 +72,6 @@ export interface UserNote {
   updatedAt: string;
 }
 
-// Novo tipo para armazenar conteúdo offline
 export interface OfflineContent {
   id: string;
   userId: string;
