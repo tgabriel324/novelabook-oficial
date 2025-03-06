@@ -25,6 +25,13 @@ import Community from "@/pages/client/Community";
 import Support from "@/pages/client/Support";
 import Documentation from "@/pages/client/Documentation";
 import BookDetails from "@/pages/client/BookDetails";
+import EditProfile from "@/pages/client/profile/EditProfile";
+import PurchaseHistory from "@/pages/client/profile/PurchaseHistory";
+import Favorites from "@/pages/client/profile/Favorites";
+import Preferences from "@/pages/client/profile/Preferences";
+import SecuritySettings from "@/pages/client/profile/SecuritySettings";
+import TermsOfService from "@/pages/client/profile/TermsOfService";
+import PrivacyPolicy from "@/pages/client/profile/PrivacyPolicy";
 
 // Auth Pages
 import Login from "@/pages/auth/Login";
@@ -63,6 +70,15 @@ const App = () => (
             <Route path="/suporte" element={<Support />} />
             <Route path="/documentacao" element={<Documentation />} />
             <Route path="/livro/:id" element={<BookDetails />} />
+            
+            {/* Rotas de perfil */}
+            <Route path="/perfil/editar" element={<EditProfile />} />
+            <Route path="/perfil/compras" element={<PurchaseHistory />} />
+            <Route path="/perfil/favoritos" element={<Favorites />} />
+            <Route path="/perfil/preferencias" element={<Preferences />} />
+            <Route path="/perfil/seguranca" element={<SecuritySettings />} />
+            <Route path="/termos-de-servico" element={<TermsOfService />} />
+            <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
           </Route>
 
           {/* Reader Route - Standalone without bottom navigation */}

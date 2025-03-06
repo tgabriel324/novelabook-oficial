@@ -1,22 +1,36 @@
 
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import BottomNav from "@/components/navigation/BottomNav";
 import { Toaster } from "@/components/ui/sonner";
-import { useLocation } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 
 const ClientLayout = () => {
   const location = useLocation();
+  
   const getHeaderTitle = () => {
-    switch(location.pathname) {
+    const path = location.pathname;
+    
+    // Verificar primeiro os caminhos exatos
+    switch(path) {
       case '/': return 'Descobrir';
       case '/biblioteca': return 'Minha Biblioteca';
       case '/loja': return 'Loja de Novelas';
       case '/perfil': return 'Meu Perfil';
       case '/comunidade': return 'Comunidade';
       case '/suporte': return 'Suporte';
-      default: return 'NovelBook';
     }
+    
+    // Verificar caminhos de perfil para títulos específicos
+    if (path.startsWith('/perfil/editar')) return 'Editar Perfil';
+    if (path.startsWith('/perfil/compras')) return 'Histórico de Compras';
+    if (path.startsWith('/perfil/favoritos')) return 'Meus Favoritos';
+    if (path.startsWith('/perfil/preferencias')) return 'Preferências';
+    if (path.startsWith('/perfil/seguranca')) return 'Segurança da Conta';
+    if (path.startsWith('/termos-de-servico')) return 'Termos de Serviço';
+    if (path.startsWith('/politica-de-privacidade')) return 'Política de Privacidade';
+    
+    // Título padrão para outras páginas
+    return 'NovelBook';
   };
 
   return (

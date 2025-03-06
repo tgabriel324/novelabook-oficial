@@ -15,7 +15,7 @@ import {
   Download,
   BookmarkCheck
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 // Componente para exibir listas de itens
@@ -64,6 +64,7 @@ const ItemList = ({ items, type }: { items: any[], type: string }) => {
 
 const Profile = () => {
   const [selectedTab, setSelectedTab] = useState("account");
+  const navigate = useNavigate();
   
   // Dados mockados
   const favoriteBooks = [
@@ -89,6 +90,7 @@ const Profile = () => {
   const handleLogout = () => {
     toast.success("Sessão encerrada com sucesso!");
     // Implementação real do logout iria aqui
+    navigate("/login");
   };
 
   return (
@@ -126,7 +128,11 @@ const Profile = () => {
               <CardTitle className="text-lg text-primary">Minha Conta</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
-              <Button variant="outline" className="flex w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="flex w-full justify-start"
+                onClick={() => navigate("/perfil/editar")}
+              >
                 <User className="mr-2" size={18} />
                 Editar Perfil
               </Button>
@@ -136,19 +142,35 @@ const Profile = () => {
                   Minha Biblioteca
                 </Button>
               </Link>
-              <Button variant="outline" className="flex w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="flex w-full justify-start"
+                onClick={() => navigate("/perfil/compras")}
+              >
                 <ShoppingBag className="mr-2" size={18} />
                 Histórico de Compras
               </Button>
-              <Button variant="outline" className="flex w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="flex w-full justify-start"
+                onClick={() => navigate("/perfil/favoritos")}
+              >
                 <Heart className="mr-2" size={18} />
                 Meus Favoritos
               </Button>
-              <Button variant="outline" className="flex w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="flex w-full justify-start"
+                onClick={() => navigate("/perfil/preferencias")}
+              >
                 <Settings className="mr-2" size={18} />
                 Preferências
               </Button>
-              <Button variant="outline" className="flex w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="flex w-full justify-start"
+                onClick={() => navigate("/perfil/seguranca")}
+              >
                 <Shield className="mr-2" size={18} />
                 Segurança da Conta
               </Button>
@@ -156,13 +178,25 @@ const Profile = () => {
           </Card>
 
           <div className="mt-8 flex flex-col gap-3">
-            <Button variant="outline" className="flex w-full justify-start">
+            <Button 
+              variant="outline" 
+              className="flex w-full justify-start"
+              onClick={() => navigate("/termos-de-servico")}
+            >
               Termos de Serviço
             </Button>
-            <Button variant="outline" className="flex w-full justify-start">
+            <Button 
+              variant="outline" 
+              className="flex w-full justify-start"
+              onClick={() => navigate("/politica-de-privacidade")}
+            >
               Política de Privacidade
             </Button>
-            <Button variant="outline" className="flex w-full justify-start text-destructive" onClick={handleLogout}>
+            <Button 
+              variant="outline" 
+              className="flex w-full justify-start text-destructive" 
+              onClick={handleLogout}
+            >
               <LogOut className="mr-2" size={18} />
               Sair
             </Button>
