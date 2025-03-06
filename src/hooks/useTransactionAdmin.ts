@@ -2,12 +2,20 @@
 import { useState } from "react";
 import { Transaction, Dispute, Refund, BankReconciliation } from "@/lib/data/paymentTypes";
 import { 
-  useTransactionFiltering,
-  useRefundManagement,
-  useDisputeManagement,
-  useBankReconciliation,
+  useTransactionFiltering
+} from "@/hooks/transaction-admin/useTransactionFiltering";
+import {
+  useRefundManagement
+} from "@/hooks/transaction-admin/useRefundManagement";
+import {
+  useDisputeManagement
+} from "@/hooks/transaction-admin/useDisputeManagement";
+import {
+  useBankReconciliation
+} from "@/hooks/transaction-admin/useBankReconciliation";
+import {
   useExportReports
-} from "@/hooks/transaction-admin";
+} from "@/hooks/transaction-admin/useExportReports";
 
 // Main hook that combines all transaction admin hooks
 export const useTransactionAdmin = () => {
