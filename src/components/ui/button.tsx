@@ -20,7 +20,9 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-        telegram: "bg-[#0088cc] text-white hover:bg-[#0088cc]/90", // Novo estilo para Telegram
+        telegram: "bg-[#0088cc] text-white hover:bg-[#0088cc]/90", // Estilo para Telegram
+        success: "bg-green-500 text-white hover:bg-green-600", // Nova variante success
+        warning: "bg-yellow-500 text-white hover:bg-yellow-600", // Nova variante warning
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -1,4 +1,3 @@
-
 import { Transaction, BankReconciliation } from "@/lib/data/paymentTypes";
 import {
   Dialog,
@@ -199,14 +198,14 @@ const BankReconciliationDialog = ({
                         </TableCell>
                         <TableCell>
                           {reconciliation.status === 'matched' ? (
-                            <Badge variant="success" className="bg-green-500">
+                            <Badge variant="default" className="bg-green-500">
                               <div className="flex items-center gap-1">
                                 <CheckCircle className="h-3 w-3" />
                                 <span>Conciliado</span>
                               </div>
                             </Badge>
                           ) : reconciliation.status === 'partial_match' ? (
-                            <Badge variant="warning" className="bg-yellow-500">
+                            <Badge variant="default" className="bg-yellow-500">
                               <div className="flex items-center gap-1">
                                 <AlertTriangle className="h-3 w-3" />
                                 <span>Parcial</span>
