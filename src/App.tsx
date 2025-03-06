@@ -15,7 +15,7 @@ import Dashboard from "@/pages/admin/Dashboard";
 import ReadingAnalytics from "@/components/admin/ReadingAnalytics";
 import PerformanceOptimizer from "@/components/admin/PerformanceOptimizer";
 import CompatibilityTester from "@/components/admin/CompatibilityTester";
-import TransactionDashboard from "@/components/admin/TransactionDashboard";
+import TransactionsDashboardPage from "@/pages/admin/TransactionsDashboard";
 import DiscountManagement from "@/pages/admin/DiscountManagement";
 import ContentManagement from "@/pages/admin/ContentManagement";
 
@@ -97,7 +97,7 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<AuthCheck allowedRoles={['admin']}><AdminLayout /></AuthCheck>}>
               <Route index element={<Dashboard />} />
-              <Route path="transactions" element={<TransactionDashboard />} />
+              <Route path="transactions" element={<TransactionsDashboardPage />} />
               <Route path="descontos" element={<DiscountManagement />} />
               <Route path="conteudo" element={<ContentManagement />} />
               <Route path="usuarios" element={<div>Administração de Usuários</div>} />

@@ -180,7 +180,7 @@ export const useTransactionAdmin = () => {
 
   // Function to filter transactions based on criteria
   const filterTransactionsWithCriteria = (filters: TransactionFilters): Transaction[] => {
-    return filterTransactions(filters); // Using the alias provided by useTransactionFiltering
+    return filterTransactions(filters); 
   };
 
   return {

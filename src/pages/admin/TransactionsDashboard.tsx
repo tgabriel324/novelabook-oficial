@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useTransactionAdmin } from '@/hooks/useTransactionAdmin';
 import TransactionDashboard from '@/components/admin/TransactionDashboard';
 
 const TransactionsDashboardPage = () => {
