@@ -4,7 +4,10 @@ import {
   Refund, 
   Dispute, 
   BankReconciliation,
-  PaymentMethod
+  PaymentMethod,
+  Coupon,
+  SpecialOffer,
+  VolumeDiscount
 } from '@/lib/data/paymentTypes';
 
 export interface TransactionFilters {
@@ -52,6 +55,11 @@ export interface ReconciliationMatch {
   transactionId: string;
 }
 
+export interface ReconciliationResolution {
+  reconciliationId: string;
+  reason: string;
+}
+
 export interface ComparativeAnalysisRequest {
   periodStart: string;
   periodEnd: string;
@@ -62,4 +70,39 @@ export interface ComparativeAnalysisRequest {
 export interface ExportOptions {
   filteredTransactions?: Transaction[];
   format: 'csv' | 'pdf';
+}
+
+export interface CouponRequest {
+  code: string;
+  description: string;
+  discountType: 'percentage' | 'fixed_amount';
+  discountValue: number;
+  currency?: string;
+  minPurchaseAmount?: number;
+  maxDiscountAmount?: number;
+  startDate: string;
+  endDate: string;
+  usageLimit?: number;
+  restriction: 'none' | 'first_time_purchase' | 'specific_novel' | 'minimum_purchase';
+  restrictionValues?: string[];
+}
+
+export interface SpecialOfferRequest {
+  name: string;
+  description: string;
+  discountType: 'percentage' | 'fixed_amount';
+  discountValue: number;
+  startDate: string;
+  endDate: string;
+  targetNovelIds?: string[];
+  bannerImage?: string;
+}
+
+export interface VolumeDiscountRequest {
+  name: string;
+  description: string;
+  minQuantity: number;
+  discountPercentage: number;
+  startDate: string;
+  endDate: string;
 }

@@ -16,6 +16,7 @@ import ReadingAnalytics from "@/components/admin/ReadingAnalytics";
 import PerformanceOptimizer from "@/components/admin/PerformanceOptimizer";
 import CompatibilityTester from "@/components/admin/CompatibilityTester";
 import TransactionDashboard from "@/components/admin/TransactionDashboard";
+import DiscountManagement from "@/pages/admin/DiscountManagement";
 
 // Client Pages
 import Discover from "@/pages/client/Discover";
@@ -96,13 +97,14 @@ const App = () => (
             <Route path="/admin" element={<AuthCheck allowedRoles={['admin']}><AdminLayout /></AuthCheck>}>
               <Route index element={<Dashboard />} />
               <Route path="transactions" element={<TransactionDashboard />} />
+              <Route path="descontos" element={<DiscountManagement />} />
               <Route path="conteudo" element={<div>Gerenciamento de Conteúdo</div>} /> {/* Placeholder */}
               <Route path="usuarios" element={<div>Administração de Usuários</div>} /> {/* Placeholder */}
               <Route path="relatorios" element={<div>Relatórios</div>} /> {/* Placeholder */}
               <Route path="comunicacoes" element={<div>Comunicações</div>} /> {/* Placeholder */}
               <Route path="configuracoes" element={<div>Configurações</div>} /> {/* Placeholder */}
               
-              {/* Novas rotas de análise */}
+              {/* Rotas de análise */}
               <Route path="analytics/leitura" element={<ReadingAnalytics />} />
               <Route path="performance" element={<PerformanceOptimizer />} />
               <Route path="compatibilidade" element={<CompatibilityTester />} />

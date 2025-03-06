@@ -58,27 +58,50 @@ export const useBankReconciliation = ({
     const matchedTransaction = transactions.find(t => t.id === transactionId);
     
     if (matchedTransaction) {
-      // Update the reconciliation record with the correct status value
+      // Update the reconciliation record with the correct status and calculate discrepancy
       setReconciliations(prev => 
-        prev.map(r => 
-          r.id === reconciliationId 
-            ? {
-                ...r,
-                transactionId,
-                // Use "partial_match" instead of "discrepancy" when amounts don't match
-                status: Math.abs(r.bankAmount - matchedTransaction.amount) < 0.01 ? "matched" : "partial_match",
-                systemAmount: matchedTransaction.amount,
-                updatedAt: new Date().toISOString()
-              } 
-            : r
-        )
+        prev.map(r => {
+          if (r.id === reconciliationId) {
+            const systemAmount = matchedTransaction.amount;
+            const discrepancyAmount = Math.abs(r.bankAmount - systemAmount);
+            const status = discrepancyAmount < 0.01 ? "matched" : "partial_match";
+            
+            return {
+              ...r,
+              transactionId,
+              status,
+              systemAmount,
+              discrepancyAmount,
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return r;
+        })
       );
     }
+  };
+
+  const resolveDiscrepancy = (reconciliationId: string, reason: string) => {
+    setReconciliations(prev => 
+      prev.map(r => {
+        if (r.id === reconciliationId) {
+          return {
+            ...r,
+            discrepancyReason: reason,
+            resolvedAt: new Date().toISOString(),
+            resolvedById: "admin_user", // In a real app, this would be the current admin ID
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return r;
+      })
+    );
   };
 
   return {
     importBankStatementFile,
     reconcileManually,
+    resolveDiscrepancy,
     importProgress
   };
 };
