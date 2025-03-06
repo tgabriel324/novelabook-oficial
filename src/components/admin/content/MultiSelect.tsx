@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -24,11 +23,11 @@ export function MultiSelect({
     onChange(value.filter((i) => i !== item));
   };
 
-  const handleSelect = (item: string) => {
-    if (value.includes(item)) {
-      onChange(value.filter((i) => i !== item));
+  const handleSelect = (currentValue: string) => {
+    if (value.includes(currentValue)) {
+      onChange(value.filter((i) => i !== currentValue));
     } else {
-      onChange([...value, item]);
+      onChange([...value, currentValue]);
     }
   };
 
@@ -61,11 +60,11 @@ export function MultiSelect({
         <Command>
           <CommandGroup>
             {React.Children.map(children, (child) => {
-              if (React.isValidElement(child) && child.type === MultiSelectItem) {
-                return React.cloneElement(child, {
-                  itemValue: child.props.value,
-                  onItemSelect: handleSelect,
-                  isSelected: value.includes(child.props.value)
+              if (React.isValidElement(child)) {
+                return React.cloneElement(child as React.ReactElement<any>, {
+                  onSelect: () => handleSelect(child.props.value),
+                  'data-selected': value.includes(child.props.value),
+                  className: value.includes(child.props.value) ? "bg-accent text-accent-foreground" : "",
                 });
               }
               return child;
@@ -79,28 +78,22 @@ export function MultiSelect({
 
 interface MultiSelectItemProps {
   value: string;
-  isSelected?: boolean;
-  itemValue?: string;
-  onItemSelect?: (value: string) => void;
   children: React.ReactNode;
+  onSelect?: () => void;
+  className?: string;
 }
 
 export function MultiSelectItem({
   value,
-  isSelected,
-  itemValue,
-  onItemSelect,
   children,
+  onSelect,
+  className
 }: MultiSelectItemProps) {
   return (
     <CommandItem
       value={value}
-      onSelect={() => {
-        if (onItemSelect && itemValue) {
-          onItemSelect(itemValue);
-        }
-      }}
-      className={isSelected ? "bg-accent text-accent-foreground" : ""}
+      onSelect={onSelect}
+      className={className}
     >
       {children}
     </CommandItem>
