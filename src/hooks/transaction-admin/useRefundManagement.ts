@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { Transaction, Refund } from '@/lib/data/paymentTypes';
-import { RefundRequest } from './types';
+import { RefundRequest, RefundFilters } from './types';
 import { generateUniqueId } from './utils';
 import { useToast } from '@/hooks/use-toast';
 import { processRefund } from '@/services/admin/transactionAdminService';
@@ -17,6 +18,7 @@ export const useRefundManagement = ({
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<RefundFilters>({});
   const { toast } = useToast();
 
   const createRefund = async ({
@@ -103,8 +105,71 @@ export const useRefundManagement = ({
     }
   };
 
+  const filterRefunds = (filters: RefundFilters): Refund[] => {
+    setActiveFilters(filters);
+    
+    return refunds.filter(refund => {
+      let match = true;
+      
+      if (filters.status && refund.status !== filters.status) {
+        match = false;
+      }
+      
+      if (filters.fromDate) {
+        const fromDate = new Date(filters.fromDate);
+        const refundDate = new Date(refund.createdAt);
+        if (refundDate < fromDate) {
+          match = false;
+        }
+      }
+      
+      if (filters.toDate) {
+        const toDate = new Date(filters.toDate);
+        const refundDate = new Date(refund.createdAt);
+        if (refundDate > toDate) {
+          match = false;
+        }
+      }
+      
+      if (filters.minAmount !== undefined && refund.amount < filters.minAmount) {
+        match = false;
+      }
+      
+      if (filters.maxAmount !== undefined && refund.amount > filters.maxAmount) {
+        match = false;
+      }
+      
+      if (filters.searchTerm) {
+        const searchLower = filters.searchTerm.toLowerCase();
+        const idMatch = refund.id.toLowerCase().includes(searchLower);
+        const transactionMatch = refund.transactionId.toLowerCase().includes(searchLower);
+        const userMatch = refund.userId.toLowerCase().includes(searchLower);
+        const reasonMatch = refund.reason.toLowerCase().includes(searchLower);
+        
+        if (!idMatch && !transactionMatch && !userMatch && !reasonMatch) {
+          match = false;
+        }
+      }
+      
+      return match;
+    });
+  };
+
+  const getFilteredRefunds = () => {
+    return filterRefunds(activeFilters);
+  };
+
+  const clearFilters = () => {
+    setActiveFilters({});
+    return refunds;
+  };
+
   return {
     isLoading,
-    createRefund
+    createRefund,
+    filterRefunds,
+    getFilteredRefunds,
+    clearFilters,
+    activeFilters
   };
 };

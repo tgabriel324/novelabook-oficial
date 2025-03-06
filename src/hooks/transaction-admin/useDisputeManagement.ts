@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { Dispute } from '@/lib/data/paymentTypes';
-import { DisputeResponse } from './types';
+import { DisputeResponse, DisputeFilters } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { respondToDispute } from '@/services/admin/transactionAdminService';
 
@@ -12,6 +13,7 @@ export const useDisputeManagement = ({
   setDisputes: React.Dispatch<React.SetStateAction<Dispute[]>>
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<DisputeFilters>({});
   const { toast } = useToast();
 
   const respondToDisputeRequest = async ({
@@ -68,8 +70,62 @@ export const useDisputeManagement = ({
     }
   };
 
+  const filterDisputes = (filters: DisputeFilters): Dispute[] => {
+    setActiveFilters(filters);
+    
+    return disputes.filter(dispute => {
+      let match = true;
+      
+      if (filters.status && dispute.status !== filters.status) {
+        match = false;
+      }
+      
+      if (filters.fromDate) {
+        const fromDate = new Date(filters.fromDate);
+        const disputeDate = new Date(dispute.createdAt);
+        if (disputeDate < fromDate) {
+          match = false;
+        }
+      }
+      
+      if (filters.toDate) {
+        const toDate = new Date(filters.toDate);
+        const disputeDate = new Date(dispute.createdAt);
+        if (disputeDate > toDate) {
+          match = false;
+        }
+      }
+      
+      if (filters.searchTerm) {
+        const searchLower = filters.searchTerm.toLowerCase();
+        const idMatch = dispute.id.toLowerCase().includes(searchLower);
+        const userMatch = dispute.userId.toLowerCase().includes(searchLower);
+        const reasonMatch = dispute.reason.toLowerCase().includes(searchLower);
+        
+        if (!idMatch && !userMatch && !reasonMatch) {
+          match = false;
+        }
+      }
+      
+      return match;
+    });
+  };
+
+  const getFilteredDisputes = () => {
+    return filterDisputes(activeFilters);
+  };
+
+  const clearFilters = () => {
+    setActiveFilters({});
+    return disputes;
+  };
+
   return {
     isLoading,
-    respondToDisputeRequest
+    respondToDisputeRequest,
+    filterDisputes,
+    getFilteredDisputes,
+    clearFilters,
+    activeFilters
   };
 };

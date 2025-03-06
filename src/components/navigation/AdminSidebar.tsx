@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -11,7 +10,8 @@ import {
   ChevronRight,
   BookOpenCheck,
   Cpu,
-  Smartphone
+  Smartphone,
+  CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,11 @@ const navItems = [
     icon: LayoutDashboard,
     label: "Dashboard",
     path: "/admin",
+  },
+  {
+    icon: CreditCard,
+    label: "Transações",
+    path: "/admin/transactions",
   },
   {
     icon: BookOpen,
@@ -53,7 +58,6 @@ const navItems = [
   },
 ];
 
-// Novos itens para análise e otimização
 const optimizationItems = [
   {
     icon: BookOpenCheck,
@@ -112,7 +116,6 @@ const AdminSidebar = () => {
           </Link>
         ))}
         
-        {/* Seção de otimização e análise */}
         {(expanded || isMobile) ? (
           <Collapsible 
             open={optimizationOpen} 
@@ -147,7 +150,6 @@ const AdminSidebar = () => {
             </CollapsibleContent>
           </Collapsible>
         ) : (
-          // Versão compacta para sidebar recolhida
           optimizationItems.map((item) => (
             <Link
               key={item.path}
